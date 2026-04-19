@@ -68,4 +68,4 @@ cd client && npm run dev
 ## 📄 License
 This project is proprietary and built for high-end professional use.
 
-*Built with precision by Antigravity.*
+*Built with precision by Vansh jain.*
