@@ -1,0 +1,9 @@
+node_modules/
+.env
+dist/
+.DS_Store
+server/public/logos/*
+!server/public/logos/.gitkeep
+history.json
+branding.json
+*.xlsx
