@@ -1,71 +1,108 @@
-# CertiVerify - Enterprise Credential Ecosystem
+# AuthPulse: Professional Credentialing & Verification Ecosystem
 
-**CertiVerify** is a sophisticated, high-end MERN-stack platform designed for the seamless issuance and instant verification of digital certificates. Built with a focus on "human-crafted" aesthetics and cryptographic security, it serves as a robust solution for organizations to manage professional credentials.
+![AuthPulse Logo](https://img.shields.io/badge/AuthPulse-Enterprise-blue?style=for-the-badge&logo=react)
+![Security](https://img.shields.io/badge/Security-SHA--256-green?style=for-the-badge)
+![UI](https://img.shields.io/badge/UI-Canva--Grade-teal?style=for-the-badge)
 
----
-
-## 🌟 Core Features
-
-### 🏢 Organization Management
-- **Bespoke Branding**: Upload your organization seal and set a custom primary color palette to ensure certificates match your brand identity.
-- **Digital Signatures**: Verified placement of authorized signatory seals directly on the credential.
-- **Enterprise Dashboard**: A centralized console for analytics, bulk issuance, and audit tracking.
-
-### 📜 Credential Security
-- **Dynamic QR Verification**: Every certificate includes a unique QR code for instant mobile-based authenticity checks.
-- **Blockchain Integrity Hashing**: Each record is secured with a SHA-256 cryptographic hash, ensuring credentials are tamper-proof.
-- **Revocation System**: Full control over certificate status, allowing admins to revoke or restore credentials in real-time.
-
-### ⚡ Automation & Growth
-- **Bulk Spreadsheet Processing**: Issue hundreds of certificates in seconds by uploading standard `.xlsx` datasets.
-- **LinkedIn "Add to Profile"**: One-click social integration for students to showcase their verified credentials to the world.
-- **Universal Export**: Mass-export the entire certificate ecosystem into a compressed ZIP format for secure backups.
+**AuthPulse** is a first-of-its-kind, high-fidelity credentialing platform that brings Canva-level design flexibility to institutional automated verification. It protects organizations from credential fraud while providing an elite user experience for both administrators and students.
 
 ---
 
-## 🎨 Design Philosophy
-CertiVerify moves away from generic templates, utilizing a refined design language characterized by:
-- **Sophisticated Typography**: A harmonious blend of *Playfair Display* (Serif) for authority and *Inter* (Sans-serif) for utility.
-- **Architectural Whitespace**: A clean, breathable layout that emphasizes content clarity and professional elegance.
-- **Micro-interactions**: Subtle, intentional animations that provide a premium user experience without distraction.
+## 🏗️ System Architecture
 
----
-
-## 🛠 Tech Stack
-- **Frontend**: React.js, Vite, Framer Motion, Recharts, Lucide Icons.
-- **Backend**: Node.js, Express, Multer (File Processing), Adm-Zip.
-- **Storage**: Portable JSON Architecture (Optimized for instant deployment).
-- **Security**: SHA-256 Hashing, JWT-ready structure.
-
----
-
-## 🚀 Quick Start
-
-### 1. Installation
-```bash
-# Install server dependencies
-cd server && npm install
-
-# Install client dependencies
-cd ../client && npm install
+```mermaid
+graph TD
+    subgraph "Creative Interface"
+        A[Canva Design] -->|Export PNG| B[AuthPulse Creator Engine]
+        B -->|Coordinate Mapping| C[Template Hub]
+    end
+    
+    subgraph "Institutional Hub (Admin)"
+        C --> D[Mass Issuance Console]
+        D -->|JSON Input| E[Security Engine]
+        E -->|SHA-256| F[Credential Database]
+    end
+    
+    subgraph "Verification Network"
+        F --> G[Public Landing Page]
+        G -->|QR Scan| H[TrustSeal Verification Portal]
+        H -->|Direct Verification| I[Employer Approval]
+    end
 ```
 
-### 2. Launch the System
-```bash
-# Start the Backend (Port 5000)
-cd server && npm start
+---
 
-# Start the Frontend (Port 5173)
-cd client && npm run dev
-```
+## 🚀 Key Modules
 
-### 3. Usage
-- **Admin**: Click "Admin Portal" to access the Management Console (Default logic: Local JSON persistence).
-- **Student**: Enter a Certificate ID on the landing page for instant verification.
+### 🎨 1. The Creator Engine (Canva Bridge)
+Our visual design studio provides a seamless bridge from premium design tools like Canva into our automated engine.
+- **A4 Stabilization**: Enforced 1.414:1 aspect ratio ensures your design never offsets.
+- **Layering System**: Pro-grade Z-index controls for overlapping logos, signatures, and seals.
+- **Dynamic Variable Mapping**: Drag and drop automated tokens like `{{studentName}}` onto any pixel of your custom background.
+
+### 🛡️ 2. Security & Integrity (SHA-256)
+Tamper-proofing is at the core of the ecosystem.
+- **Blockchain-Inspired Hashing**: Every certificate generates a unique cryptographic hash based on its payload.
+- **TrustSeal QR**: Instant mobile-first verification. Scanning the QR code bypasses manual lookups and goes straight to the digital source of truth.
+- **Institution Branding**: Custom organization seals and color palettes are baked into the security signature.
+
+### 📊 3. Central Command Hub
+Total control over the credential lifecycle.
+- **Mass Issuance**: Upload hundreds of records via XLSX and issue in one click.
+- **Revocation Manager**: Instantly invalidate a certificate if an error is found or a program is incomplete.
+- **Live Analytics**: Track student demographics and internship domain distributions.
 
 ---
 
-## 📄 License
-This project is proprietary and built for high-end professional use.
+## 🛠️ Technical Implementation
 
-*Built with precision by Vansh jain.*
+| Component | Technology | Role |
+| :--- | :--- | :--- |
+| **Frontend** | React 18 / Vite | High-performance sub-pixel rendering. |
+| **Styling** | Vanilla CSS + Framer Motion | Fluid, premium animations and layouts. |
+| **Backend** | Node.js / Express | Automation and file management. |
+| **Security** | Crypto-JS | Industry-standard SHA-256 implementation. |
+| **Icons** | Lucide-React | Crisp, premium vector library. |
+
+---
+
+## 📂 Project Structure
+
+```bash
+├── client/           # React + Vite Frontend
+│   ├── src/
+│   │   ├── components/  # Creator Engine, Dashboard, Verify Portal
+│   │   └── App.jsx      # Main Hub Router
+├── server/           # Node.js + Express Backend
+│   ├── db_handler.js    # Security & Persistence Manager
+│   ├── public/assets    # Global Design Media Library
+│   └── templates.json   # Dynamic Design Metadata
+└── SYSTEM_DESIGN.md  # Detailed Architectural Specifications
+```
+
+---
+
+## 🏁 Quick Launch Guide
+
+1. **Environment Setup**
+   ```bash
+   cd client && npm install
+   cd ../server && npm install
+   ```
+
+2. **Start the Engine**
+   ```bash
+   # Terminal 1: Backend
+   cd server && npm start
+   
+   # Terminal 2: Frontend
+   cd client && npm run dev
+   ```
+
+3. **Verification Testing**
+   Search for `CERT-2024-001` on the landing page to witness the high-fidelity rendering and security hash in action.
+
+---
+
+**Built with Precision for Institutional Excellence.**  
+*© 2026 AuthPulse Engineering | Developed by Vansh Jain & Antigravity*
