@@ -105,4 +105,4 @@ Total control over the credential lifecycle.
 ---
 
 **Built with Precision for Institutional Excellence.**  
-*© 2026 AuthPulse Engineering | Developed by Vansh Jain & Antigravity*
+*© 2026 AuthPulse| Developed by Vansh Jain*
