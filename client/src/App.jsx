@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import CertificateCard from './components/CertificateCard';
@@ -14,7 +14,22 @@ function App() {
   const [error, setError] = useState(null);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [branding, setBranding] = useState(null);
+  const [templates, setTemplates] = useState([]);
   const certificateRef = useRef();
+
+  useEffect(() => {
+    const fetchEcosystemData = async () => {
+      try {
+        const { data: b } = await axios.get('http://127.0.0.1:5000/api/admin/branding');
+        const { data: t } = await axios.get('http://127.0.0.1:5000/api/admin/templates');
+        setBranding(b);
+        setTemplates(t);
+      } catch (err) {
+        console.error('Core ecosystem sync failed');
+      }
+    };
+    fetchEcosystemData();
+  }, []);
 
   const handlePrint = useReactToPrint({
     content: () => certificateRef.current,
@@ -77,7 +92,12 @@ function App() {
                   </button>
                 </div>
                 
-                <CertificateCard ref={certificateRef} data={certificate} branding={branding} />
+                <CertificateCard 
+                  ref={certificateRef} 
+                  data={certificate} 
+                  branding={branding} 
+                  template={templates.find(t => t.id === certificate.templateId) || templates[0]} 
+                />
               </motion.div>
             )}
           </AnimatePresence>
@@ -88,7 +108,7 @@ function App() {
         padding: '6rem 0', background: '#f8fafc', borderTop: '1px solid #e2e8f0', textAlign: 'center'
       }}>
         <div className="premium-container">
-          <h3 className="serif" style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>CertiVerify Ecosystem</h3>
+          <h3 className="serif" style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>AuthPulse Ecosystem</h3>
           <p style={{ color: '#64748b', fontSize: '0.9rem', maxWidth: '500px', margin: '0 auto' }}>
             A trusted platform for verification and issuance of academic and professional credentials.
             Secured by cryptographic hashing.

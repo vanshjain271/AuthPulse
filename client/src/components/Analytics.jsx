@@ -4,7 +4,8 @@ import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, 
 const Analytics = ({ data }) => {
   if (!data) return <p>Loading analytics...</p>;
 
-  const domainData = Object.entries(data.domainStats).map(([name, value]) => ({ name, value }));
+  const domainStats = data.domainStats || {};
+  const domainData = Object.entries(domainStats).map(([name, value]) => ({ name, value }));
   const COLORS = ['#1e293b', '#c2410c', '#b45309', '#64748b', '#94a3b8'];
 
   return (
