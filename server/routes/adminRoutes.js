@@ -9,7 +9,20 @@ const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, 'public/logos'),
   filename: (req, file, cb) => cb(null, 'org_logo' + path.extname(file.originalname))
 });
+
+const templateStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, 'public/templates'),
+  filename: (req, file, cb) => cb(null, 'bg_' + Date.now() + path.extname(file.originalname))
+});
+
+const assetStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, 'public/assets'),
+  filename: (req, file, cb) => cb(null, 'asset_' + Date.now() + path.extname(file.originalname))
+});
+
 const upload = multer({ storage });
+const uploadTemplate = multer({ storage: templateStorage });
+const uploadAsset = multer({ storage: assetStorage });
 
 // @route   GET /api/admin/analytics
 // @desc    Get dashboard stats
@@ -88,6 +101,49 @@ router.post('/upload-logo', upload.single('logo'), (req, res) => {
   db.addLog('SETTINGS', 'Updated organization branding seal');
   
   res.json({ message: 'Logo uploaded successfully', logoUrl: branding.logo });
+});
+
+// @route   GET /api/admin/templates
+router.get('/templates', (req, res) => {
+  res.json(db.getTemplates());
+});
+
+// @route   POST /api/admin/templates
+router.post('/templates', (req, res) => {
+  db.saveTemplate(req.body);
+  res.json({ message: 'Template saved successfully' });
+});
+
+// @route   DELETE /api/admin/templates/:id
+router.delete('/templates/:id', (req, res) => {
+  const templates = db.getTemplates();
+  const filtered = templates.filter(t => t.id !== req.params.id);
+  const fs = require('fs');
+  const path = require('path');
+  const TEMPLATES_PATH = path.join(__dirname, '../templates.json');
+  fs.writeFileSync(TEMPLATES_PATH, JSON.stringify(filtered, null, 2));
+  db.addLog('TEMPLATE', `Archived template: ${req.params.id}`);
+  res.json({ message: 'Template archived' });
+});
+
+// @route   POST /api/admin/assets/upload
+router.post('/assets/upload', uploadAsset.single('asset'), (req, res) => {
+  if (!req.file) return res.status(400).json({ message: 'No asset file' });
+  const assetUrl = `http://127.0.0.1:5000/public/assets/${req.file.filename}`;
+  db.addLog('ASSET', `Uploaded new design asset: ${req.file.filename}`);
+  res.json({ assetUrl });
+});
+
+// @route   GET /api/admin/assets
+router.get('/assets', (req, res) => {
+  const fs = require('fs');
+  const path = require('path');
+  const assetsDir = path.join(__dirname, '../public/assets');
+  if (!fs.existsSync(assetsDir)) return res.json([]);
+  
+  const files = fs.readdirSync(assetsDir);
+  const assets = files.map(f => `http://127.0.0.1:5000/public/assets/${f}`);
+  res.json(assets);
 });
 
 module.exports = router;

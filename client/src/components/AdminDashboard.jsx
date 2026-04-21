@@ -1,15 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Upload, History, Settings, X, Search, ShieldAlert, CheckCircle2, Download, AlertCircle, Trash2 } from 'lucide-react';
+import { LayoutDashboard, Upload, History, Settings, X, Search, ShieldAlert, CheckCircle2, Download, AlertCircle, Trash2, Palette, Wand2 } from 'lucide-react';
 import Analytics from './Analytics';
+import TemplateDesigner from './TemplateDesigner';
 import axios from 'axios';
 
 const AdminDashboard = ({ onClose }) => {
   const [activeTab, setActiveTab] = useState('overview');
+  const [isDesignerOpen, setIsDesignerOpen] = useState(false);
+  const [templates, setTemplates] = useState([]);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [analytics, setAnalytics] = useState(null);
   const [certs, setCerts] = useState([]);
   const [logs, setLogs] = useState([]);
   const [file, setFile] = useState(null);
   const [uploadStatus, setUploadStatus] = useState(null);
+  const [filter, setFilter] = useState('All');
 
   const API_BASE = 'http://127.0.0.1:5000/api/admin';
 
@@ -20,11 +25,14 @@ const AdminDashboard = ({ onClose }) => {
   const fetchData = async () => {
     try {
       const { data: stats } = await axios.get(`${API_BASE}/analytics`);
+      const { data: tmpls } = await axios.get(`${API_BASE}/templates`);
       setAnalytics(stats);
-      setLogs(stats.recentLogs);
+      setLogs(stats.recentLogs || []);
       setCerts(stats.allCertificates || []);
+      setTemplates(tmpls || []);
+      if (tmpls && tmpls.length > 0) setSelectedTemplate(tmpls[0]);
     } catch (err) {
-      console.error('Failed to fetch admin data');
+      console.error('Failed to fetch AuthPulse ecosystem data');
     }
   };
 
@@ -58,10 +66,8 @@ const AdminDashboard = ({ onClose }) => {
   const handleLogoUpload = async (e) => {
     const logoFile = e.target.files[0];
     if (!logoFile) return;
-
     const formData = new FormData();
     formData.append('logo', logoFile);
-
     try {
       await axios.post(`${API_BASE}/upload-logo`, formData);
       alert('Logo updated successfully!');
@@ -88,23 +94,33 @@ const AdminDashboard = ({ onClose }) => {
           </button>
         </header>
 
-        <nav className="tab-nav">
-          <button onClick={() => setActiveTab('overview')} className={`tab-link ${activeTab === 'overview' ? 'active' : ''}`}>
-            <LayoutDashboard size={18} inline="true" /> Overview
+        <nav className="tab-nav" style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid #e2e8f0' }}>
+          <button onClick={() => setActiveTab('overview')} className={`tab-link ${activeTab === 'overview' ? 'active' : ''}`} style={{ padding: '1rem', border: 'none', background: 'none', cursor: 'pointer', borderBottom: activeTab === 'overview' ? '2px solid var(--accent)' : 'none' }}>
+            Overview
           </button>
-          <button onClick={() => setActiveTab('upload')} className={`tab-link ${activeTab === 'upload' ? 'active' : ''}`}>
-            <Upload size={18} inline="true" /> Issue Multi
+          <button onClick={() => setActiveTab('issue')} className={`tab-link ${activeTab === 'issue' ? 'active' : ''}`} style={{ padding: '1rem', border: 'none', background: 'none', cursor: 'pointer', borderBottom: activeTab === 'issue' ? '2px solid var(--accent)' : 'none' }}>
+            Issue Multi
           </button>
-          <button onClick={() => setActiveTab('history')} className={`tab-link ${activeTab === 'history' ? 'active' : ''}`}>
-            <History size={18} inline="true" /> Audit & Records
+          <button onClick={() => setActiveTab('design')} className={`tab-link ${activeTab === 'design' ? 'active' : ''}`} style={{ padding: '1rem', border: 'none', background: 'none', cursor: 'pointer', borderBottom: activeTab === 'design' ? '2px solid var(--accent)' : 'none' }}>
+            Design Hub
           </button>
-          <button onClick={() => setActiveTab('settings')} className={`tab-link ${activeTab === 'settings' ? 'active' : ''}`}>
-            <Settings size={18} inline="true" /> Branding
+          <button onClick={() => setActiveTab('records')} className={`tab-link ${activeTab === 'records' ? 'active' : ''}`} style={{ padding: '1rem', border: 'none', background: 'none', cursor: 'pointer', borderBottom: activeTab === 'records' ? '2px solid var(--accent)' : 'none' }}>
+            Audit & Records
+          </button>
+          <button onClick={() => setActiveTab('settings')} className={`tab-link ${activeTab === 'settings' ? 'active' : ''}`} style={{ padding: '1rem', border: 'none', background: 'none', cursor: 'pointer', borderBottom: activeTab === 'settings' ? '2px solid var(--accent)' : 'none' }}>
+            Branding
           </button>
         </nav>
 
         <div className="tab-content">
-          {activeTab === 'overview' && (
+          {isDesignerOpen && (
+            <TemplateDesigner 
+              onSave={() => { setIsDesignerOpen(false); fetchData(); }} 
+              onClose={() => setIsDesignerOpen(false)} 
+            />
+          )}
+
+          {activeTab === 'overview' && analytics && (
             <div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.5rem' }}>
                 <button onClick={handleExport} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -115,10 +131,10 @@ const AdminDashboard = ({ onClose }) => {
             </div>
           )}
           
-          {activeTab === 'upload' && (
+          {activeTab === 'issue' && (
             <div className="human-card" style={{ maxWidth: '600px', margin: '0 auto' }}>
               <h2 className="serif" style={{ marginBottom: '2rem' }}>Bulk Issuance</h2>
-              <p style={{ color: '#64748b', marginBottom: '2rem' }}>Upload your validated student dataset to generate unforgeable credentials instantly.</p>
+              <p style={{ color: '#64748b', marginBottom: '2rem' }}>Upload your validated student dataset to generate credentials instantly.</p>
               <input type="file" onChange={(e) => setFile(e.target.files[0])} />
               <button onClick={handleUpload} className="btn-primary" style={{ width: '100%', marginTop: '1.5rem' }}>
                 Process Spreadsheet
@@ -132,7 +148,96 @@ const AdminDashboard = ({ onClose }) => {
             </div>
           )}
 
-          {activeTab === 'history' && (
+          {activeTab === 'design' && (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                <div>
+                  <h2 className="serif">Design Hub</h2>
+                  <p style={{ color: '#64748b' }}>Explore {templates.length} professional templates across the ecosystem.</p>
+                </div>
+                <button onClick={() => setIsDesignerOpen(true)} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Wand2 size={18} /> Launch Visual Constructor
+                </button>
+              </div>
+
+              {/* Canva Bridge Helper */}
+              <div style={{ 
+                background: 'linear-gradient(135deg, #7d2ae8 0%, #00c4cc 100%)', 
+                borderRadius: '16px', padding: '2rem', marginBottom: '3rem', color: 'white',
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                boxShadow: '0 10px 30px rgba(125, 42, 232, 0.2)'
+              }}>
+                <div style={{ maxWidth: '600px' }}>
+                  <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>The Canva Bridge</h3>
+                  <p style={{ opacity: 0.9 }}>Design your background in Canva, export as PNG, and import it here. Drag variables on top for a full enterprise-grade automated ecosystem.</p>
+                </div>
+                <button 
+                  onClick={() => window.open('https://www.canva.com', '_blank')}
+                  style={{ background: 'white', color: '#7d2ae8', border: 'none', padding: '1rem 2rem', borderRadius: '8px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  Open Canva
+                </button>
+              </div>
+
+              {/* Category Filter */}
+              <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '2rem', overflowX: 'auto', paddingBottom: '1rem' }}>
+                {['All', 'Academic', 'Corporate', 'Minimal', 'Creative'].map(cat => (
+                  <button 
+                    key={cat}
+                    onClick={() => setFilter(cat)}
+                    style={{
+                      padding: '0.6rem 1.2rem', borderRadius: '99px', border: '1px solid #e2e8f0',
+                      background: filter === cat ? 'var(--primary)' : 'white',
+                      color: filter === cat ? 'white' : '#64748b',
+                      fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2rem' }}>
+                {templates.filter(t => filter === 'All' || t.category === filter).map(tmpl => (
+                  <div key={tmpl.id} className="human-card hover-lift" style={{ 
+                    padding: 0, overflow: 'hidden', border: selectedTemplate?.id === tmpl.id ? '2px solid var(--accent)' : '1px solid #e2e8f0',
+                    position: 'relative'
+                  }}>
+                    <div style={{ 
+                      height: '200px', backgroundImage: `url(${tmpl.background})`, 
+                      backgroundSize: 'cover', backgroundPosition: 'center',
+                      position: 'relative'
+                    }}>
+                      <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '0.5rem' }}>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if(confirm('Archive this template from ecosystem?')) {
+                              axios.delete(`${API_BASE}/templates/${tmpl.id}`).then(() => fetchData());
+                            }
+                          }}
+                          style={{ background: 'rgba(255,255,255,0.9)', border: 'none', padding: '0.4rem', borderRadius: '6px', color: '#ef4444', cursor: 'pointer' }}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                    <div style={{ padding: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <span className="serif" style={{ fontWeight: 600, display: 'block' }}>{tmpl.name}</span>
+                        <span style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase' }}>{tmpl.category}</span>
+                      </div>
+                      <button onClick={() => setSelectedTemplate(tmpl)} className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}>
+                        {selectedTemplate?.id === tmpl.id ? 'Active' : 'Select'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'records' && (
             <div>
               <div className="human-card" style={{ marginBottom: '2rem' }}>
                 <h2 className="serif" style={{ marginBottom: '2rem' }}>Credential Registry</h2>
@@ -151,25 +256,23 @@ const AdminDashboard = ({ onClose }) => {
                         <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
                           <td style={{ padding: '1rem', fontWeight: 600 }}>{c.certificateId}</td>
                           <td style={{ padding: '1rem' }}>{c.studentName}</td>
-                          <td style={{ padding: '1rem' }}>
-                            <span style={{ 
-                              padding: '0.25rem 0.75rem', borderRadius: '99px', fontSize: '0.75rem',
-                              background: c.revoked ? '#fef2f2' : '#f0f9ff',
-                              color: c.revoked ? '#dc2626' : '#0369a1'
-                            }}>
+                          <td>
+                             <span style={{ padding: '0.25rem 0.75rem', borderRadius: '99px', fontSize: '0.75rem', background: c.revoked ? '#fef2f2' : '#f0f9ff', color: c.revoked ? '#dc2626' : '#0369a1' }}>
                               {c.revoked ? 'Revoked' : 'Active'}
                             </span>
                           </td>
-                          <td style={{ padding: '1rem' }}>
+                          <td style={{ display: 'flex', gap: '0.5rem', padding: '1rem' }}>
                             <button 
-                              onClick={() => handleRevoke(c.certificateId, c.revoked)}
-                              style={{ 
-                                background: 'none', border: '1px solid #e2e8f0', padding: '0.4rem 0.8rem', 
-                                borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' 
+                              onClick={() => {
+                                const msg = `Hello ${c.studentName}, your official AuthPulse credential is ready! View it here: ${window.location.origin}/verify/${c.certificateId}`;
+                                window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
                               }}
+                              className="btn-secondary" style={{ padding: '0.4rem', color: '#25d366' }} title="WhatsApp"
                             >
-                              <ShieldAlert size={14} color={c.revoked ? '#10b981' : '#ef4444'} />
-                              {c.revoked ? 'Restore' : 'Revoke'}
+                              WA
+                            </button>
+                            <button onClick={() => handleRevoke(c.certificateId, c.revoked)} className="btn-secondary" style={{ padding: '0.4rem', color: c.revoked ? '#10b981' : '#ef4444' }}>
+                              <ShieldAlert size={18} />
                             </button>
                           </td>
                         </tr>
@@ -178,13 +281,12 @@ const AdminDashboard = ({ onClose }) => {
                   </table>
                 </div>
               </div>
-
               <div className="human-card">
-                <h2 className="serif" style={{ marginBottom: '2rem' }}>Recent Audit Logs</h2>
+                <h2 className="serif" style={{ marginBottom: '2rem' }}>Audit Logs</h2>
                 {logs.map((log, i) => (
                   <div key={i} style={{ padding: '1rem 0', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between' }}>
                     <div>
-                      <strong style={{ fontSize: '0.9rem', color: '#1e293b' }}>[{log.action}]</strong>
+                      <strong>[{log.action}]</strong>
                       <span style={{ marginLeft: '1rem' }}>{log.description}</span>
                     </div>
                     <small style={{ color: '#94a3b8' }}>{new Date(log.timestamp).toLocaleString()}</small>
@@ -196,14 +298,12 @@ const AdminDashboard = ({ onClose }) => {
 
           {activeTab === 'settings' && (
             <div className="human-card" style={{ maxWidth: '600px' }}>
-              <h2 className="serif" style={{ marginBottom: '2rem' }}>Organization Profile</h2>
-              <p style={{ color: '#64748b' }}>Configure the appearance and signature authority for your official credentials.</p>
-              
+              <h2 className="serif" style={{ marginBottom: '2rem' }}>Branding</h2>
               <label style={{ cursor: 'pointer' }}>
                 <input type="file" onChange={handleLogoUpload} style={{ display: 'none' }} accept="image/*" />
-                <div style={{ marginTop: '2rem', padding: '4rem', border: '1px dashed #e2e8f0', borderRadius: '8px', textAlign: 'center', background: '#f8fafc' }}>
-                  <Upload size={32} style={{ color: '#94a3b8', marginBottom: '1rem' }} />
-                  <p style={{ fontSize: '0.875rem' }}>Click to Upload Organization Seal (PNG/JPG)</p>
+                <div style={{ padding: '4rem', border: '1px dashed #e2e8f0', borderRadius: '8px', textAlign: 'center', background: '#f8fafc' }}>
+                  <Upload size={32} style={{ color: '#94a3b8' }} />
+                  <p>Upload Seal (PNG/JPG)</p>
                 </div>
               </label>
             </div>
