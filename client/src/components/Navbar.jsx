@@ -19,7 +19,7 @@ const Navbar = ({ onAdminClick }) => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <Award size={28} color="var(--primary)" />
           <span className="serif" style={{ fontSize: '1.75rem', fontWeight: 700, letterSpacing: '-0.5px', color: 'var(--primary)' }}>
-            CertiVerify
+            AuthPulse
           </span>
         </div>
         
