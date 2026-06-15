@@ -97,7 +97,7 @@
     "endDate": "2024-05-01T00:00:00.000Z",
     "issuedAt": "2026-04-20T10:45:42.957Z",
     "hash": "fe5a5000edee42f8227f2a8bdccf81f5de9b0996269fc0440832ef1326ba39a4",
-    "revoked": false
+    "revoked": true
   },
   {
     "certificateId": "CERT-2024-011",

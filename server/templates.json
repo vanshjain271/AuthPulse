@@ -5,10 +5,50 @@
     "category": "Academic",
     "background": "https://images.unsplash.com/photo-1589330694653-731336c53f3e?auto=format&fit=crop&q=80&w=2000",
     "elements": [
-      { "id": "title", "type": "text", "content": "CERTIFICATE OF ACHIEVEMENT", "x": 50, "y": 25, "fontSize": 42, "fontWeight": 700, "color": "#1e293b", "fontFamily": "Playfair Display" },
-      { "id": "name", "type": "variable", "key": "studentName", "x": 50, "y": 48, "fontSize": 56, "fontWeight": 700, "color": "#b45309", "fontFamily": "Playfair Display" },
-      { "id": "desc", "type": "text", "content": "FOR OUTSTANDING PERFORMANCE IN", "x": 50, "y": 60, "fontSize": 18, "fontWeight": 500, "color": "#64748b", "fontFamily": "Inter" },
-      { "id": "domain", "type": "variable", "key": "internshipDomain", "x": 50, "y": 68, "fontSize": 32, "fontWeight": 600, "color": "#1e293b", "fontFamily": "Inter" }
+      {
+        "id": "title",
+        "type": "text",
+        "content": "CERTIFICATE OF ACHIEVEMENT",
+        "x": 50,
+        "y": 25,
+        "fontSize": 42,
+        "fontWeight": 700,
+        "color": "#1e293b",
+        "fontFamily": "Playfair Display"
+      },
+      {
+        "id": "name",
+        "type": "variable",
+        "key": "studentName",
+        "x": 50,
+        "y": 48,
+        "fontSize": 56,
+        "fontWeight": 700,
+        "color": "#b45309",
+        "fontFamily": "Playfair Display"
+      },
+      {
+        "id": "desc",
+        "type": "text",
+        "content": "FOR OUTSTANDING PERFORMANCE IN",
+        "x": 50,
+        "y": 60,
+        "fontSize": 18,
+        "fontWeight": 500,
+        "color": "#64748b",
+        "fontFamily": "Inter"
+      },
+      {
+        "id": "domain",
+        "type": "variable",
+        "key": "internshipDomain",
+        "x": 50,
+        "y": 68,
+        "fontSize": 32,
+        "fontWeight": 600,
+        "color": "#1e293b",
+        "fontFamily": "Inter"
+      }
     ]
   },
   {
@@ -17,8 +57,28 @@
     "category": "Corporate",
     "background": "https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&q=80&w=2000",
     "elements": [
-      { "id": "name", "type": "variable", "key": "studentName", "x": 50, "y": 45, "fontSize": 64, "fontWeight": 800, "color": "#ffffff", "fontFamily": "Inter" },
-      { "id": "domain", "type": "variable", "key": "internshipDomain", "x": 50, "y": 55, "fontSize": 24, "fontWeight": 400, "color": "#94a3b8", "fontFamily": "Inter" }
+      {
+        "id": "name",
+        "type": "variable",
+        "key": "studentName",
+        "x": 50,
+        "y": 45,
+        "fontSize": 64,
+        "fontWeight": 800,
+        "color": "#ffffff",
+        "fontFamily": "Inter"
+      },
+      {
+        "id": "domain",
+        "type": "variable",
+        "key": "internshipDomain",
+        "x": 50,
+        "y": 55,
+        "fontSize": 24,
+        "fontWeight": 400,
+        "color": "#94a3b8",
+        "fontFamily": "Inter"
+      }
     ]
   },
   {
@@ -27,7 +87,17 @@
     "category": "Minimal",
     "background": "https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?auto=format&fit=crop&q=80&w=2000",
     "elements": [
-      { "id": "name", "type": "variable", "key": "studentName", "x": 50, "y": 50, "fontSize": 48, "fontWeight": 300, "color": "#1e293b", "fontFamily": "Playfair Display" }
+      {
+        "id": "name",
+        "type": "variable",
+        "key": "studentName",
+        "x": 50,
+        "y": 50,
+        "fontSize": 48,
+        "fontWeight": 300,
+        "color": "#1e293b",
+        "fontFamily": "Playfair Display"
+      }
     ]
   },
   {
@@ -36,7 +106,17 @@
     "category": "Creative",
     "background": "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&q=80&w=2000",
     "elements": [
-      { "id": "name", "type": "variable", "key": "studentName", "x": 50, "y": 40, "fontSize": 72, "fontWeight": 900, "color": "#1e293b", "fontFamily": "Inter" }
+      {
+        "id": "name",
+        "type": "variable",
+        "key": "studentName",
+        "x": 50,
+        "y": 40,
+        "fontSize": 72,
+        "fontWeight": 900,
+        "color": "#1e293b",
+        "fontFamily": "Inter"
+      }
     ]
   },
   {
@@ -45,16 +125,17 @@
     "category": "Academic",
     "background": "https://images.unsplash.com/photo-1579546649207-167858c89498?auto=format&fit=crop&q=80&w=2000",
     "elements": [
-      { "id": "name", "type": "variable", "key": "studentName", "x": 50, "y": 45, "fontSize": 52, "fontWeight": 700, "color": "#1e293b", "fontFamily": "Playfair Display" }
-    ]
-  },
-  {
-    "id": "modern-slate",
-    "name": "Modern Slate",
-    "category": "Corporate",
-    "background": "https://images.unsplash.com/photo-1550684376-efcbd6e3f031?auto=format&fit=crop&q=80&w=2000",
-    "elements": [
-      { "id": "name", "type": "variable", "key": "studentName", "x": 50, "y": 45, "fontSize": 56, "fontWeight": 700, "color": "#ffffff", "fontFamily": "Inter" }
+      {
+        "id": "name",
+        "type": "variable",
+        "key": "studentName",
+        "x": 50,
+        "y": 45,
+        "fontSize": 52,
+        "fontWeight": 700,
+        "color": "#1e293b",
+        "fontFamily": "Playfair Display"
+      }
     ]
   },
   {
@@ -63,7 +144,17 @@
     "category": "Creative",
     "background": "https://images.unsplash.com/photo-1550684847-75bdda0f02e6?auto=format&fit=crop&q=80&w=2000",
     "elements": [
-      { "id": "name", "type": "variable", "key": "studentName", "x": 50, "y": 50, "fontSize": 60, "fontWeight": 800, "color": "#1e293b", "fontFamily": "Inter" }
+      {
+        "id": "name",
+        "type": "variable",
+        "key": "studentName",
+        "x": 50,
+        "y": 50,
+        "fontSize": 60,
+        "fontWeight": 800,
+        "color": "#1e293b",
+        "fontFamily": "Inter"
+      }
     ]
   },
   {
@@ -72,7 +163,17 @@
     "category": "Academic",
     "background": "https://images.unsplash.com/photo-1533035353720-f1c6a75cd8ab?auto=format&fit=crop&q=80&w=2000",
     "elements": [
-      { "id": "name", "type": "variable", "key": "studentName", "x": 50, "y": 45, "fontSize": 48, "fontWeight": 700, "color": "#4b3621", "fontFamily": "Playfair Display" }
+      {
+        "id": "name",
+        "type": "variable",
+        "key": "studentName",
+        "x": 50,
+        "y": 45,
+        "fontSize": 48,
+        "fontWeight": 700,
+        "color": "#4b3621",
+        "fontFamily": "Playfair Display"
+      }
     ]
   },
   {
@@ -81,7 +182,17 @@
     "category": "Corporate",
     "background": "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&q=80&w=2000",
     "elements": [
-      { "id": "name", "type": "variable", "key": "studentName", "x": 50, "y": 45, "fontSize": 56, "fontWeight": 700, "color": "#1e40af", "fontFamily": "Inter" }
+      {
+        "id": "name",
+        "type": "variable",
+        "key": "studentName",
+        "x": 50,
+        "y": 45,
+        "fontSize": 56,
+        "fontWeight": 700,
+        "color": "#1e40af",
+        "fontFamily": "Inter"
+      }
     ]
   },
   {
@@ -90,7 +201,17 @@
     "category": "Minimal",
     "background": "https://images.unsplash.com/photo-1614850523296-e8c1d0912a71?auto=format&fit=crop&q=80&w=2000",
     "elements": [
-      { "id": "name", "type": "variable", "key": "studentName", "x": 50, "y": 50, "fontSize": 40, "fontWeight": 300, "color": "#1e293b", "fontFamily": "Playfair Display" }
+      {
+        "id": "name",
+        "type": "variable",
+        "key": "studentName",
+        "x": 50,
+        "y": 50,
+        "fontSize": 40,
+        "fontWeight": 300,
+        "color": "#1e293b",
+        "fontFamily": "Playfair Display"
+      }
     ]
   },
   {
@@ -99,7 +220,17 @@
     "category": "Creative",
     "background": "https://images.unsplash.com/photo-1557682250-33bd709cbe85?auto=format&fit=crop&q=80&w=2000",
     "elements": [
-      { "id": "name", "type": "variable", "key": "studentName", "x": 50, "y": 45, "fontSize": 64, "fontWeight": 800, "color": "#ffffff", "fontFamily": "Inter" }
+      {
+        "id": "name",
+        "type": "variable",
+        "key": "studentName",
+        "x": 50,
+        "y": 45,
+        "fontSize": 64,
+        "fontWeight": 800,
+        "color": "#ffffff",
+        "fontFamily": "Inter"
+      }
     ]
   },
   {
@@ -108,7 +239,17 @@
     "category": "Academic",
     "background": "https://images.unsplash.com/photo-1589330694653-731336c53f3e?auto=format&fit=crop&q=80&w=2000",
     "elements": [
-      { "id": "name", "type": "variable", "key": "studentName", "x": 50, "y": 45, "fontSize": 52, "fontWeight": 700, "color": "#78350f", "fontFamily": "Playfair Display" }
+      {
+        "id": "name",
+        "type": "variable",
+        "key": "studentName",
+        "x": 50,
+        "y": 45,
+        "fontSize": 52,
+        "fontWeight": 700,
+        "color": "#78350f",
+        "fontFamily": "Playfair Display"
+      }
     ]
   },
   {
@@ -117,7 +258,17 @@
     "category": "Corporate",
     "background": "https://images.unsplash.com/photo-1550684848-86a5d8727436?auto=format&fit=crop&q=80&w=2000",
     "elements": [
-      { "id": "name", "type": "variable", "key": "studentName", "x": 50, "y": 45, "fontSize": 56, "fontWeight": 700, "color": "#ffffff", "fontFamily": "Inter" }
+      {
+        "id": "name",
+        "type": "variable",
+        "key": "studentName",
+        "x": 50,
+        "y": 45,
+        "fontSize": 56,
+        "fontWeight": 700,
+        "color": "#ffffff",
+        "fontFamily": "Inter"
+      }
     ]
   },
   {
@@ -126,7 +277,17 @@
     "category": "Minimal",
     "background": "https://images.unsplash.com/photo-1614850523060-8da1d56ae167?auto=format&fit=crop&q=80&w=2000",
     "elements": [
-      { "id": "name", "type": "variable", "key": "studentName", "x": 50, "y": 50, "fontSize": 44, "fontWeight": 400, "color": "#1e293b", "fontFamily": "Inter" }
+      {
+        "id": "name",
+        "type": "variable",
+        "key": "studentName",
+        "x": 50,
+        "y": 50,
+        "fontSize": 44,
+        "fontWeight": 400,
+        "color": "#1e293b",
+        "fontFamily": "Inter"
+      }
     ]
   },
   {
@@ -135,7 +296,17 @@
     "category": "Creative",
     "background": "https://images.unsplash.com/photo-1557682224-5b8590cd9ec5?auto=format&fit=crop&q=80&w=2000",
     "elements": [
-      { "id": "name", "type": "variable", "key": "studentName", "x": 50, "y": 45, "fontSize": 64, "fontWeight": 800, "color": "#ffffff", "fontFamily": "Inter" }
+      {
+        "id": "name",
+        "type": "variable",
+        "key": "studentName",
+        "x": 50,
+        "y": 45,
+        "fontSize": 64,
+        "fontWeight": 800,
+        "color": "#ffffff",
+        "fontFamily": "Inter"
+      }
     ]
   }
 ]

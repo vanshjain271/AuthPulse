@@ -105,13 +105,25 @@ const CertificateCard = forwardRef(({ data, branding, template }, ref) => {
           </p>
         </div>
 
-        {/* Default Content Fallback (only if no template elements exist) */}
-        {(!template || !template.elements || template.elements.length === 0) && (
-          <div style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '10%' }}>
-            <h1 className="serif" style={{ fontSize: '3.5rem', marginBottom: '1.5rem' }}>Certificate of Excellence</h1>
-            <p style={{ fontStyle: 'italic', color: '#64748b', fontSize: '1.2rem' }}>This is to certify that</p>
-            <h2 className="serif" style={{ fontSize: '3rem', margin: '1rem 0', color: branding?.colors?.primary }}>{data.studentName}</h2>
-            <p style={{ color: '#64748b', textAlign: 'center' }}>has successfully completed the program in <strong>{data.internshipDomain}</strong></p>
+        {/* Smart Layer Fallback: Automatically injects professional placement if no elements exist */}
+        {(!template?.elements || template.elements.length === 0) && (
+          <div style={{ 
+            height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', 
+            alignItems: 'center', padding: '10%', textAlign: 'center' 
+          }}>
+            <h1 className="serif" style={{ fontSize: '3.5rem', marginBottom: '1.5rem', color: '#1e293b' }}>
+              Certificate of Excellence
+            </h1>
+            <p style={{ fontStyle: 'italic', color: '#64748b', fontSize: '1.2rem', marginBottom: '1rem' }}>
+              This is to certify that
+            </p>
+            <h2 className="serif" style={{ fontSize: '3.5rem', margin: '0.5rem 0', color: branding?.colors?.primary || '#b45309' }}>
+              {data.studentName}
+            </h2>
+            <p style={{ color: '#64748b', maxWidth: '600px', lineHeight: 1.6 }}>
+              has successfully completed the professional program in <br/>
+              <strong style={{ fontSize: '1.4rem', color: '#1e293b' }}>{data.internshipDomain}</strong>
+            </p>
           </div>
         )}
       </div>
