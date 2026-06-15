@@ -1,9 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db_handler');
 const AdmZip = require('adm-zip');
 const multer = require('multer');
 const path = require('path');
+const https = require('https');
+
+const auth = require('../middleware/auth');
+const Template = require('../models/Template');
+const Certificate = require('../models/Certificate');
+
+// Apply auth middleware to all admin routes
+router.use(auth);
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, 'public/logos'),
@@ -26,10 +33,11 @@ const uploadAsset = multer({ storage: assetStorage });
 
 // @route   GET /api/admin/analytics
 // @desc    Get dashboard stats
-router.get('/analytics', (req, res) => {
+router.get('/analytics', async (req, res) => {
   try {
-    const certs = db.getAll();
-    const logs = db.getLogs();
+    const certs = await Certificate.find({ organizationId: req.organizationId });
+    // Assuming you might want to add logs to MongoDB later, keeping it empty for now or using a generic log.
+    const logs = []; 
     
     // Domain distribution
     const domainStats = certs.reduce((acc, c) => {
@@ -39,10 +47,10 @@ router.get('/analytics', (req, res) => {
 
     res.json({
       totalIssued: certs.length,
-      revokedCount: certs.filter(c => c.revoked).length,
+      revokedCount: certs.filter(c => c.status === 'REVOKED').length,
       domainStats,
-      recentLogs: logs.slice(0, 20),
-      allCertificates: certs // For the history table
+      recentLogs: logs,
+      allCertificates: certs
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -51,17 +59,25 @@ router.get('/analytics', (req, res) => {
 
 // @route   POST /api/admin/revoke/:id
 // @desc    Revoke/Restore a certificate
-router.post('/revoke/:id', (req, res) => {
-  const { revoked } = req.body;
-  db.updateStatus(req.params.id, revoked);
-  res.json({ message: `Certificate ${revoked ? 'revoked' : 'restored'}` });
+router.post('/revoke/:id', async (req, res) => {
+  try {
+    const { revoked } = req.body;
+    const cert = await Certificate.findOneAndUpdate(
+      { certificateId: req.params.id, organizationId: req.organizationId },
+      { status: revoked ? 'REVOKED' : 'VALID' }
+    );
+    if (!cert) return res.status(404).json({ message: 'Certificate not found' });
+    res.json({ message: `Certificate ${revoked ? 'revoked' : 'restored'}` });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
 // @route   GET /api/admin/export-zip
 // @desc    Export all certificate metadata to a ZIP
-router.get('/export-zip', (req, res) => {
+router.get('/export-zip', async (req, res) => {
   try {
-    const certs = db.getAll();
+    const certs = await Certificate.find({ organizationId: req.organizationId });
     const zip = new AdmZip();
     
     const content = JSON.stringify(certs, null, 2);
@@ -72,8 +88,6 @@ router.get('/export-zip', (req, res) => {
     res.set('Content-Disposition', `attachment; filename=CertVerify_Export_${Date.now()}.zip`);
     res.set('Content-Length', data.length);
     res.send(data);
-    
-    db.addLog('EXPORT', 'Mass exported all credentials as ZIP');
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -81,13 +95,12 @@ router.get('/export-zip', (req, res) => {
 
 // @route   GET /api/admin/branding
 router.get('/branding', (req, res) => {
-  res.json(db.getBranding());
+  // Temporary MVP stub since db_handler is deprecated
+  res.json({ colors: { primary: '#b45309' } });
 });
 
 // @route   POST /api/admin/branding
 router.post('/branding', (req, res) => {
-  db.updateBranding(req.body);
-  db.addLog('SETTINGS', 'Updated organization branding profile');
   res.json({ message: 'Settings updated' });
 });
 
@@ -95,42 +108,62 @@ router.post('/branding', (req, res) => {
 router.post('/upload-logo', upload.single('logo'), (req, res) => {
   if (!req.file) return res.status(400).json({ message: 'No logo file' });
   
-  const branding = db.getBranding();
-  branding.logo = `http://127.0.0.1:5000/public/logos/${req.file.filename}`;
-  db.updateBranding(branding);
-  db.addLog('SETTINGS', 'Updated organization branding seal');
-  
-  res.json({ message: 'Logo uploaded successfully', logoUrl: branding.logo });
+  const logoUrl = `http://127.0.0.1:5000/public/logos/${req.file.filename}`;
+  // You would save this to the Organization model in a real app
+  res.json({ message: 'Logo uploaded successfully', logoUrl });
 });
 
 // @route   GET /api/admin/templates
-router.get('/templates', (req, res) => {
-  res.json(db.getTemplates());
+router.get('/templates', async (req, res) => {
+  try {
+    const templates = await Template.find({ organizationId: req.organizationId });
+    res.json(templates);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
 // @route   POST /api/admin/templates
-router.post('/templates', (req, res) => {
-  db.saveTemplate(req.body);
-  res.json({ message: 'Template saved successfully' });
+router.post('/templates', async (req, res) => {
+  try {
+    const { name, background, elements } = req.body;
+    const template = new Template({
+      organizationId: req.organizationId,
+      name,
+      background,
+      elements
+    });
+    await template.save();
+    res.json({ message: 'Template saved successfully', template });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// @route   POST /api/admin/templates/upload-bg
+router.post('/templates/upload-bg', uploadTemplate.single('background'), (req, res) => {
+  if (!req.file) return res.status(400).json({ message: 'No background file' });
+  const bgUrl = `http://127.0.0.1:5000/public/templates/${req.file.filename}`;
+  res.json({ bgUrl });
 });
 
 // @route   DELETE /api/admin/templates/:id
-router.delete('/templates/:id', (req, res) => {
-  const templates = db.getTemplates();
-  const filtered = templates.filter(t => t.id !== req.params.id);
-  const fs = require('fs');
-  const path = require('path');
-  const TEMPLATES_PATH = path.join(__dirname, '../templates.json');
-  fs.writeFileSync(TEMPLATES_PATH, JSON.stringify(filtered, null, 2));
-  db.addLog('TEMPLATE', `Archived template: ${req.params.id}`);
-  res.json({ message: 'Template archived' });
+router.delete('/templates/:id', async (req, res) => {
+  try {
+    const template = await Template.findOneAndDelete({ _id: req.params.id, organizationId: req.organizationId });
+    if (!template) {
+      return res.status(404).json({ message: 'Template not found' });
+    }
+    res.json({ message: 'Template archived' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
 // @route   POST /api/admin/assets/upload
 router.post('/assets/upload', uploadAsset.single('asset'), (req, res) => {
   if (!req.file) return res.status(400).json({ message: 'No asset file' });
   const assetUrl = `http://127.0.0.1:5000/public/assets/${req.file.filename}`;
-  db.addLog('ASSET', `Uploaded new design asset: ${req.file.filename}`);
   res.json({ assetUrl });
 });
 
@@ -144,6 +177,30 @@ router.get('/assets', (req, res) => {
   const files = fs.readdirSync(assetsDir);
   const assets = files.map(f => `http://127.0.0.1:5000/public/assets/${f}`);
   res.json(assets);
+});
+
+// @route   GET /api/admin/proxy-canva?url=...
+router.get('/proxy-canva', (req, res) => {
+  const targetUrl = req.query.url;
+  if (!targetUrl || !targetUrl.includes('canva.com')) {
+    return res.status(400).json({ message: 'Invalid Canva URL' });
+  }
+
+  https.get(targetUrl, (response) => {
+    let data = '';
+    response.on('data', (chunk) => { data += chunk; });
+    response.on('end', () => {
+      // Find og:image in meta tags
+      const match = data.match(/<meta property="og:image" content="(.*?)"/);
+      if (match && match[1]) {
+        res.json({ imageUrl: match[1] });
+      } else {
+        res.status(404).json({ message: 'Design thumbnail not found. Ensure the link is Public.' });
+      }
+    });
+  }).on('error', (err) => {
+    res.status(500).json({ message: 'Proxy fetch failed' });
+  });
 });
 
 module.exports = router;

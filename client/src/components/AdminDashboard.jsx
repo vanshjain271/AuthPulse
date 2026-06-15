@@ -18,21 +18,26 @@ const AdminDashboard = ({ onClose }) => {
 
   const API_BASE = 'http://127.0.0.1:5000/api/admin';
 
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('authpulse_token');
+    return { headers: { Authorization: `Bearer ${token}` } };
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
 
   const fetchData = async () => {
     try {
-      const { data: stats } = await axios.get(`${API_BASE}/analytics`);
-      const { data: tmpls } = await axios.get(`${API_BASE}/templates`);
+      const { data: stats } = await axios.get(`${API_BASE}/analytics`, getAuthHeaders());
+      const { data: tmpls } = await axios.get(`${API_BASE}/templates`, getAuthHeaders());
       setAnalytics(stats);
       setLogs(stats.recentLogs || []);
       setCerts(stats.allCertificates || []);
       setTemplates(tmpls || []);
       if (tmpls && tmpls.length > 0) setSelectedTemplate(tmpls[0]);
     } catch (err) {
-      console.error('Failed to fetch AuthPulse ecosystem data');
+      console.error('Failed to fetch AuthPulse ecosystem data', err);
     }
   };
 
@@ -40,9 +45,18 @@ const AdminDashboard = ({ onClose }) => {
     if (!file) return;
     const formData = new FormData();
     formData.append('file', file);
+    if (selectedTemplate) {
+      formData.append('templateId', selectedTemplate._id); // ensure _id is used
+    }
+    
     try {
-      await axios.post('http://127.0.0.1:5000/api/certificates/upload', formData);
-      setUploadStatus({ type: 'success', message: 'Certificates synced successfully' });
+      await axios.post('http://127.0.0.1:5000/api/certificates/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${localStorage.getItem('authpulse_token')}`
+        }
+      });
+      setUploadStatus({ type: 'success', message: 'Certificates synced with template!' });
       fetchData();
       setFile(null);
     } catch (err) {
@@ -52,15 +66,29 @@ const AdminDashboard = ({ onClose }) => {
 
   const handleRevoke = async (id, currentStatus) => {
     try {
-      await axios.post(`${API_BASE}/revoke/${id}`, { revoked: !currentStatus });
+      await axios.post(`${API_BASE}/revoke/${id}`, { revoked: !currentStatus }, getAuthHeaders());
       fetchData();
     } catch (err) {
       alert('Revocation failed');
     }
   };
 
-  const handleExport = () => {
-    window.open(`${API_BASE}/export-zip`, '_blank');
+  const handleExport = async () => {
+    try {
+      // Must use axios with blob response to send headers
+      const res = await axios.get(`${API_BASE}/export-zip`, {
+        ...getAuthHeaders(),
+        responseType: 'blob'
+      });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `CertVerify_Export_${Date.now()}.zip`);
+      document.body.appendChild(link);
+      link.click();
+    } catch (err) {
+      alert('Export failed');
+    }
   };
 
   const handleLogoUpload = async (e) => {
@@ -69,7 +97,12 @@ const AdminDashboard = ({ onClose }) => {
     const formData = new FormData();
     formData.append('logo', logoFile);
     try {
-      await axios.post(`${API_BASE}/upload-logo`, formData);
+      await axios.post(`${API_BASE}/upload-logo`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${localStorage.getItem('authpulse_token')}`
+        }
+      });
       alert('Logo updated successfully!');
       fetchData();
     } catch (err) {
