@@ -1,7 +1,7 @@
 # AuthPulse: System Architectural Design
 
 **Project Title**: Pro-Grade Credentialing & Blockchain-Inspired Verification Ecosystem  
-**Author**: Vansh Jain
+**Author**:Vansh Jain
 **Scope**: Institutional Automation, Fraud Protection, and Digital Design
 
 ---
