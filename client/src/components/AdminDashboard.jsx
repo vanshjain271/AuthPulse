@@ -175,13 +175,40 @@ const AdminDashboard = ({ onClose }) => {
             <div className="human-card" style={{ maxWidth: '600px', margin: '0 auto' }}>
               <h2 className="serif" style={{ marginBottom: '2rem' }}>Bulk Issuance</h2>
               <p style={{ color: '#64748b', marginBottom: '2rem' }}>Upload your validated student dataset to generate credentials instantly.</p>
-              <input 
-                type="file" 
-                accept=".csv, .xlsx, .xls"
-                onChange={(e) => setFile(e.target.files[0])} 
-              />
-              <button onClick={handleUpload} className="btn-primary" style={{ width: '100%', marginTop: '1.5rem' }}>
-                Process Spreadsheet
+              
+              <div style={{ marginBottom: '1.5rem', textAlign: 'left' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: '#1e293b' }}>1. Select Certificate Design</label>
+                <select 
+                  value={selectedTemplate?._id || ''} 
+                  onChange={(e) => setSelectedTemplate(templates.find(t => t._id === e.target.value))}
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'white', cursor: 'pointer' }}
+                >
+                  <option value="" disabled>-- Select a Template --</option>
+                  {templates.map(t => (
+                    <option key={t._id} value={t._id}>{t.name} ({t.category || 'Custom'})</option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{ marginBottom: '1.5rem', textAlign: 'left' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: '#1e293b' }}>2. Upload Student Dataset (CSV/Excel)</label>
+                <div style={{ padding: '1rem', border: '1px dashed #cbd5e1', borderRadius: '8px', background: '#f8fafc' }}>
+                  <input 
+                    type="file" 
+                    accept=".csv, .xlsx, .xls"
+                    onChange={(e) => setFile(e.target.files[0])} 
+                    style={{ width: '100%' }}
+                  />
+                </div>
+              </div>
+
+              <button 
+                onClick={handleUpload} 
+                className="btn-primary" 
+                style={{ width: '100%', marginTop: '0.5rem', opacity: (!file || !selectedTemplate) ? 0.5 : 1 }}
+                disabled={!file || !selectedTemplate}
+              >
+                Process Spreadsheet & Issue
               </button>
               {uploadStatus && (
                 <div style={{ marginTop: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: uploadStatus.type === 'success' ? '#10b981' : '#ef4444' }}>
@@ -243,8 +270,8 @@ const AdminDashboard = ({ onClose }) => {
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2rem' }}>
                 {templates.filter(t => filter === 'All' || t.category === filter).map(tmpl => (
-                  <div key={tmpl.id} className="human-card hover-lift" style={{ 
-                    padding: 0, overflow: 'hidden', border: selectedTemplate?.id === tmpl.id ? '2px solid var(--accent)' : '1px solid #e2e8f0',
+                  <div key={tmpl._id} className="human-card hover-lift" style={{ 
+                    padding: 0, overflow: 'hidden', border: selectedTemplate?._id === tmpl._id ? '2px solid var(--accent)' : '1px solid #e2e8f0',
                     position: 'relative'
                   }}>
                     <div style={{ 
@@ -257,7 +284,7 @@ const AdminDashboard = ({ onClose }) => {
                           onClick={(e) => {
                             e.stopPropagation();
                             if(confirm('Archive this template from ecosystem?')) {
-                              axios.delete(`${API_BASE}/templates/${tmpl.id}`).then(() => fetchData());
+                              axios.delete(`${API_BASE}/templates/${tmpl._id}`).then(() => fetchData());
                             }
                           }}
                           style={{ background: 'rgba(255,255,255,0.9)', border: 'none', padding: '0.4rem', borderRadius: '6px', color: '#ef4444', cursor: 'pointer' }}
@@ -272,7 +299,7 @@ const AdminDashboard = ({ onClose }) => {
                         <span style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase' }}>{tmpl.category}</span>
                       </div>
                       <button onClick={() => setSelectedTemplate(tmpl)} className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}>
-                        {selectedTemplate?.id === tmpl.id ? 'Active' : 'Select'}
+                        {selectedTemplate?._id === tmpl._id ? 'Active' : 'Select'}
                       </button>
                     </div>
                   </div>
@@ -284,7 +311,22 @@ const AdminDashboard = ({ onClose }) => {
           {activeTab === 'records' && (
             <div>
               <div className="human-card" style={{ marginBottom: '2rem' }}>
-                <h2 className="serif" style={{ marginBottom: '2rem' }}>Credential Registry</h2>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                  <h2 className="serif" style={{ margin: 0 }}>Credential Registry</h2>
+                  <button 
+                    onClick={async () => {
+                      try {
+                        const { data } = await axios.post(`${API_BASE}/trigger-expiration-email`, {}, getAuthHeaders());
+                        alert(data.message);
+                      } catch (err) {
+                        alert(err.response?.data?.message || 'Failed to trigger test email');
+                      }
+                    }}
+                    className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', borderColor: '#ef4444', color: '#ef4444' }}
+                  >
+                    <AlertCircle size={16} /> Test Expiration Email
+                  </button>
+                </div>
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>

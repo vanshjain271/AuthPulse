@@ -213,4 +213,28 @@ router.get('/assets', (req, res) => {
   res.json(assets);
 });
 
+// @route   POST /api/admin/trigger-expiration-email
+router.post('/trigger-expiration-email', async (req, res) => {
+  try {
+    const { emailService } = require('../utils/emailService');
+    const { sendExpirationEmail } = require('../utils/emailService');
+    const certs = await Certificate.find({ organizationId: req.organizationId, status: 'VALID' }).populate('organizationId').limit(1);
+    
+    if (certs.length === 0) {
+      return res.status(404).json({ message: 'No valid certificates found to test with.' });
+    }
+    
+    const testCert = certs[0];
+    if (!testCert.email) {
+      return res.status(400).json({ message: 'The latest certificate has no email to test with.' });
+    }
+    
+    await sendExpirationEmail(testCert.email, testCert.studentName, testCert.internshipDomain, testCert.organizationId);
+    
+    res.json({ message: `Test expiration email sent successfully to ${testCert.email}` });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;
