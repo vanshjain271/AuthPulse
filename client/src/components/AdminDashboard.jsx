@@ -10,13 +10,15 @@ const AdminDashboard = ({ onClose }) => {
   const [templates, setTemplates] = useState([]);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [analytics, setAnalytics] = useState(null);
+  const [branding, setBranding] = useState({ logo: '', brandColor: '#0f172a' });
   const [certs, setCerts] = useState([]);
   const [logs, setLogs] = useState([]);
   const [file, setFile] = useState(null);
   const [uploadStatus, setUploadStatus] = useState(null);
   const [filter, setFilter] = useState('All');
 
-  const API_BASE = 'http://127.0.0.1:5000/api/admin';
+  const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+  const API_BASE = `${API_URL}/api/admin`;
 
   const getAuthHeaders = () => {
     const token = localStorage.getItem('authpulse_token');
@@ -31,7 +33,9 @@ const AdminDashboard = ({ onClose }) => {
     try {
       const { data: stats } = await axios.get(`${API_BASE}/analytics`, getAuthHeaders());
       const { data: tmpls } = await axios.get(`${API_BASE}/templates`, getAuthHeaders());
+      const { data: brand } = await axios.get(`${API_BASE}/branding`, getAuthHeaders());
       setAnalytics(stats);
+      setBranding(brand || { logo: '', brandColor: '#0f172a' });
       setLogs(stats.recentLogs || []);
       setCerts(stats.allCertificates || []);
       setTemplates(tmpls || []);
@@ -50,7 +54,7 @@ const AdminDashboard = ({ onClose }) => {
     }
     
     try {
-      await axios.post('http://127.0.0.1:5000/api/certificates/upload', formData, {
+      await axios.post(`${API_URL}/api/certificates/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${localStorage.getItem('authpulse_token')}`
@@ -97,16 +101,19 @@ const AdminDashboard = ({ onClose }) => {
     const formData = new FormData();
     formData.append('logo', logoFile);
     try {
-      await axios.post(`${API_BASE}/upload-logo`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${localStorage.getItem('authpulse_token')}`
-        }
-      });
-      alert('Logo updated successfully!');
+      await axios.post(`${API_BASE}/upload-logo`, formData, getAuthHeaders());
       fetchData();
     } catch (err) {
       alert('Logo upload failed');
+    }
+  };
+
+  const saveBrandingColor = async (color) => {
+    try {
+      await axios.post(`${API_BASE}/branding`, { brandColor: color, logo: branding.logo }, getAuthHeaders());
+      fetchData();
+    } catch (err) {
+      alert('Failed to save brand color');
     }
   };
 
@@ -331,14 +338,38 @@ const AdminDashboard = ({ onClose }) => {
 
           {activeTab === 'settings' && (
             <div className="human-card" style={{ maxWidth: '600px' }}>
-              <h2 className="serif" style={{ marginBottom: '2rem' }}>Branding</h2>
-              <label style={{ cursor: 'pointer' }}>
-                <input type="file" onChange={handleLogoUpload} style={{ display: 'none' }} accept="image/*" />
-                <div style={{ padding: '4rem', border: '1px dashed #e2e8f0', borderRadius: '8px', textAlign: 'center', background: '#f8fafc' }}>
-                  <Upload size={32} style={{ color: '#94a3b8' }} />
-                  <p>Upload Seal (PNG/JPG)</p>
+              <h2 className="serif" style={{ marginBottom: '2rem' }}>Branding & Identity</h2>
+              
+              <div style={{ marginBottom: '2rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Organization Logo</label>
+                {branding.logo && (
+                  <div style={{ marginBottom: '1rem', padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '8px', display: 'inline-block' }}>
+                    <img src={branding.logo} alt="Organization Logo" style={{ maxHeight: '80px' }} />
+                  </div>
+                )}
+                <label style={{ cursor: 'pointer', display: 'block' }}>
+                  <input type="file" onChange={handleLogoUpload} style={{ display: 'none' }} accept="image/*" />
+                  <div style={{ padding: '2rem', border: '2px dashed #e2e8f0', borderRadius: '8px', textAlign: 'center', background: '#f8fafc', transition: 'all 0.2s', ':hover': { borderColor: 'var(--accent)' } }}>
+                    <Upload size={24} style={{ color: '#94a3b8', marginBottom: '0.5rem' }} />
+                    <p style={{ margin: 0, color: '#64748b' }}>Upload New Logo (PNG/JPG)</p>
+                  </div>
+                </label>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Primary Brand Color</label>
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                  <input 
+                    type="color" 
+                    value={branding.colors?.primary || branding.brandColor || '#0f172a'} 
+                    onChange={(e) => setBranding({ ...branding, brandColor: e.target.value })}
+                    onBlur={(e) => saveBrandingColor(e.target.value)}
+                    style={{ width: '50px', height: '50px', padding: '0', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
+                  />
+                  <span style={{ fontFamily: 'monospace', color: '#64748b' }}>{branding.colors?.primary || branding.brandColor || '#0f172a'}</span>
                 </div>
-              </label>
+                <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '0.5rem' }}>Used for buttons and accents on your students' verification pages.</p>
+              </div>
             </div>
           )}
         </div>

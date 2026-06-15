@@ -9,6 +9,9 @@ const sharp = require('sharp');
 const auth = require('../middleware/auth');
 const Template = require('../models/Template');
 const Certificate = require('../models/Certificate');
+const Organization = require('../models/Organization');
+
+const getApiUrl = (req) => process.env.API_URL || `${req.protocol}://${req.get('host')}`;
 
 // Apply auth middleware to all admin routes
 router.use(auth);
@@ -97,22 +100,32 @@ router.get('/export-zip', async (req, res) => {
 });
 
 // @route   GET /api/admin/branding
-router.get('/branding', (req, res) => {
-  // Temporary MVP stub since db_handler is deprecated
-  res.json({ colors: { primary: '#b45309' } });
+router.get('/branding', async (req, res) => {
+  try {
+    const org = await Organization.findById(req.organizationId);
+    res.json({ colors: { primary: org.brandColor || '#b45309' }, logo: org.logo || '' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
 // @route   POST /api/admin/branding
-router.post('/branding', (req, res) => {
-  res.json({ message: 'Settings updated' });
+router.post('/branding', async (req, res) => {
+  try {
+    const { brandColor, logo } = req.body;
+    await Organization.findByIdAndUpdate(req.organizationId, { brandColor, logo });
+    res.json({ message: 'Settings updated' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
 // @route   POST /api/admin/upload-logo
-router.post('/upload-logo', upload.single('logo'), (req, res) => {
+router.post('/upload-logo', upload.single('logo'), async (req, res) => {
   if (!req.file) return res.status(400).json({ message: 'No logo file' });
   
-  const logoUrl = `http://127.0.0.1:5000/public/logos/${req.file.filename}`;
-  // You would save this to the Organization model in a real app
+  const logoUrl = `${getApiUrl(req)}/public/logos/${req.file.filename}`;
+  await Organization.findByIdAndUpdate(req.organizationId, { logo: logoUrl });
   res.json({ message: 'Logo uploaded successfully', logoUrl });
 });
 
@@ -147,7 +160,7 @@ router.post('/templates', async (req, res) => {
 // Accepts high-res PNG exports (up to 25MB), auto-detects aspect ratio
 router.post('/templates/upload-bg', uploadTemplate.single('background'), async (req, res) => {
   if (!req.file) return res.status(400).json({ message: 'No background file' });
-  const bgUrl = `http://127.0.0.1:5000/public/templates/${req.file.filename}`;
+  const bgUrl = `${getApiUrl(req)}/public/templates/${req.file.filename}`;
   try {
     const metadata = await sharp(req.file.path).metadata();
     const aspectRatio = metadata.width / metadata.height;
@@ -174,7 +187,7 @@ router.delete('/templates/:id', async (req, res) => {
 // @route   POST /api/admin/assets/upload
 router.post('/assets/upload', uploadAsset.single('asset'), (req, res) => {
   if (!req.file) return res.status(400).json({ message: 'No asset file' });
-  const assetUrl = `http://127.0.0.1:5000/public/assets/${req.file.filename}`;
+  const assetUrl = `${getApiUrl(req)}/public/assets/${req.file.filename}`;
   res.json({ assetUrl });
 });
 
@@ -186,7 +199,7 @@ router.get('/assets', (req, res) => {
   if (!fs.existsSync(assetsDir)) return res.json([]);
   
   const files = fs.readdirSync(assetsDir);
-  const assets = files.map(f => `http://127.0.0.1:5000/public/assets/${f}`);
+  const assets = files.map(f => `${getApiUrl(req)}/public/assets/${f}`);
   res.json(assets);
 });
 

@@ -52,8 +52,17 @@ function App() {
     setError(null);
     setCertificate(null);
     try {
-      const res = await axios.get(`http://127.0.0.1:5000/api/certificates/${id}`);
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+      const res = await axios.get(`${apiUrl}/api/certificates/${id}`);
       setCertificate(res.data);
+      
+      // Apply Organization Branding dynamically
+      if (res.data.organizationId) {
+        setBranding({ 
+          logo: res.data.organizationId.logo, 
+          colors: { primary: res.data.organizationId.brandColor || '#b45309' } 
+        });
+      }
     } catch (err) {
       setError('Credential not found. Please verify the secure ID.');
     } finally {
@@ -62,7 +71,9 @@ function App() {
   };
 
   const shareToLinkedIn = () => {
-    const url = `https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&name=${encodeURIComponent(certificate.internshipDomain)}&organizationName=CertiVerify&issueYear=${new Date(certificate.issuedAt).getFullYear()}&issueMonth=${new Date(certificate.issuedAt).getMonth() + 1}&certId=${certificate.certificateId}`;
+    const certUrl = `${window.location.origin}/verify/${certificate.certificateId}`;
+    const orgName = certificate.organizationId?.name || 'AuthPulse';
+    const url = `https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&name=${encodeURIComponent(certificate.internshipDomain)}&organizationName=${encodeURIComponent(orgName)}&issueYear=${new Date(certificate.issuedAt).getFullYear()}&issueMonth=${new Date(certificate.issuedAt).getMonth() + 1}&certId=${certificate.certificateId}&certUrl=${encodeURIComponent(certUrl)}`;
     window.open(url, '_blank');
   };
 
@@ -95,7 +106,7 @@ function App() {
                 <div className="no-print" style={{ 
                   display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '3rem' 
                 }}>
-                  <button onClick={handlePrint} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <button onClick={handlePrint} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: branding?.colors?.primary || 'var(--primary)' }}>
                     <Download size={20} /> Export High-Res PDF
                   </button>
                   <button onClick={shareToLinkedIn} className="btn-primary" style={{ background: '#0077b5', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>

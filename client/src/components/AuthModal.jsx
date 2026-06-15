@@ -18,7 +18,8 @@ const AuthModal = ({ onClose, onLoginSuccess }) => {
       const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
       const payload = isLogin ? { email: formData.email, password: formData.password } : formData;
       
-      const { data } = await axios.post(`http://127.0.0.1:5000${endpoint}`, payload);
+      const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+      const { data } = await axios.post(`${API_URL}${endpoint}`, payload);
       
       localStorage.setItem('authpulse_token', data.token);
       localStorage.setItem('authpulse_org_id', data.organizationId);

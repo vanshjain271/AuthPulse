@@ -48,10 +48,11 @@ const TemplateDesigner = ({ onSave, onClose }) => {
   const canvasRef = useRef(null);
   const editInputRef = useRef(null);
 
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem('authpulse_token');
-    return { headers: { Authorization: `Bearer ${token}` } };
-  };
+  const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+
+  const getAuthHeaders = () => ({
+    headers: { Authorization: `Bearer ${localStorage.getItem('authpulse_token')}` }
+  });
 
   useEffect(() => {
     fetchData();
@@ -67,8 +68,8 @@ const TemplateDesigner = ({ onSave, onClose }) => {
   const fetchData = async () => {
     try {
       const [assetsRes, templatesRes] = await Promise.all([
-        axios.get('http://127.0.0.1:5000/api/admin/assets', getAuthHeaders()),
-        axios.get('http://127.0.0.1:5000/api/admin/templates', getAuthHeaders()),
+        axios.get(`${API_URL}/api/admin/assets`, getAuthHeaders()),
+        axios.get(`${API_URL}/api/admin/templates`, getAuthHeaders()),
       ]);
       setAssets(assetsRes.data);
       setSavedTemplates(templatesRes.data);
@@ -121,7 +122,7 @@ const TemplateDesigner = ({ onSave, onClose }) => {
     const formData = new FormData();
     formData.append('background', file);
     try {
-      const { data } = await axios.post('http://127.0.0.1:5000/api/admin/templates/upload-bg', formData, {
+      const { data } = await axios.post(`${API_URL}/api/admin/templates/upload-bg`, formData, {
         headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${localStorage.getItem('authpulse_token')}` }
       });
       setTemplate(prev => ({ ...prev, background: data.bgUrl, aspectRatio: data.aspectRatio || 1.414 }));
@@ -140,7 +141,7 @@ const TemplateDesigner = ({ onSave, onClose }) => {
     const formData = new FormData();
     formData.append('asset', file);
     try {
-      const { data } = await axios.post('http://127.0.0.1:5000/api/admin/assets/upload', formData, {
+      const { data } = await axios.post(`${API_URL}/api/admin/assets/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${localStorage.getItem('authpulse_token')}` }
       });
       setAssets(prev => [...prev, data.assetUrl]);
@@ -152,7 +153,7 @@ const TemplateDesigner = ({ onSave, onClose }) => {
   const saveTemplate = async () => {
     setIsSaving(true);
     try {
-      await axios.post('http://127.0.0.1:5000/api/admin/templates', template, getAuthHeaders());
+      await axios.post(`${API_URL}/api/admin/templates`, template, getAuthHeaders());
       await fetchData();
       onSave();
     } catch (err) {

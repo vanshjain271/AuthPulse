@@ -15,7 +15,7 @@ const upload = multer({ storage: storage });
 // @desc    Get certificate by ID (Public verification)
 router.get('/:id', async (req, res) => {
   try {
-    const certificate = await Certificate.findOne({ certificateId: req.params.id }).populate('organizationId', 'name');
+    const certificate = await Certificate.findOne({ certificateId: req.params.id }).populate('organizationId', 'name logo brandColor');
     if (!certificate) {
       return res.status(404).json({ message: 'Certificate not found' });
     }
@@ -78,9 +78,10 @@ router.post('/upload', auth, upload.single('file'), async (req, res) => {
 
       // Trigger Email
       if (email) {
-        // Constructing a theoretical frontend URL for verification
-        const certUrl = `http://localhost:5173/verify/${certificateId}`;
-        await sendCertificateEmail(email, studentName, certUrl, org.name);
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        const certUrl = `${frontendUrl}/verify/${certificateId}`;
+        // Note: sendCertificateEmail now takes the full org object for branding
+        await sendCertificateEmail(email, studentName, certUrl, org);
       }
     }
 
