@@ -104,16 +104,44 @@ const TemplateDesigner = ({ onSave, onClose }) => {
     setEditingId(null);
   };
 
-  const handleCanvasDrag = useCallback((e, id) => {
-    if (!canvasRef.current || e.clientX === 0) return;
+  const handleMouseDown = (e, el) => {
+    if (editingId === el.id) return;
+    e.preventDefault();
+    setSelectedId(el.id);
+
+    if (!canvasRef.current) return;
     const rect = canvasRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    updateElement(id, {
-      x: Math.max(2, Math.min(98, x)),
-      y: Math.max(2, Math.min(98, y))
-    });
-  }, []);
+    
+    const elXpx = (el.x / 100) * rect.width;
+    const elYpx = (el.y / 100) * rect.height;
+
+    const startX = e.clientX;
+    const startY = e.clientY;
+
+    const handleMouseMove = (moveEvent) => {
+      const deltaX = moveEvent.clientX - startX;
+      const deltaY = moveEvent.clientY - startY;
+
+      const newXpx = elXpx + deltaX;
+      const newYpx = elYpx + deltaY;
+
+      const newXpct = (newXpx / rect.width) * 100;
+      const newYpct = (newYpx / rect.height) * 100;
+
+      updateElement(el.id, {
+        x: Math.max(2, Math.min(98, newXpct)),
+        y: Math.max(2, Math.min(98, newYpct))
+      });
+    };
+
+    const handleMouseUp = () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
 
   const uploadBackground = async (e) => {
     const file = e.target.files[0];
@@ -462,9 +490,7 @@ const TemplateDesigner = ({ onSave, onClose }) => {
 
             {[...template.elements].sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0)).map(el => (
               <div key={el.id}
-                draggable={editingId !== el.id}
-                onDragEnd={e => handleCanvasDrag(e, el.id)}
-                onMouseDown={() => { if (editingId !== el.id) setSelectedId(el.id); }}
+                onMouseDown={e => handleMouseDown(e, el)}
                 onDoubleClick={() => { if (el.type === 'text') { setSelectedId(el.id); setEditingId(el.id); } }}
                 style={{
                   position: 'absolute', top: `${el.y}%`, left: `${el.x}%`,

@@ -5,6 +5,7 @@ const multer = require('multer');
 const path = require('path');
 const https = require('https');
 const sharp = require('sharp');
+const fs = require('fs');
 
 const auth = require('../middleware/auth');
 const Template = require('../models/Template');
@@ -17,19 +18,31 @@ const getApiUrl = (req) => process.env.API_URL || `${req.protocol}://${req.get('
 router.use(auth);
 
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'public/logos'),
+  destination: (req, file, cb) => {
+    const dir = path.join(__dirname, '../public/logos', req.organizationId);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
   filename: (req, file, cb) => cb(null, 'org_logo' + path.extname(file.originalname))
 });
 
 const templateStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'public/templates'),
+  destination: (req, file, cb) => {
+    const dir = path.join(__dirname, '../public/templates', req.organizationId);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
   filename: (req, file, cb) => cb(null, 'bg_' + Date.now() + path.extname(file.originalname))
 });
 // Allow up to 25MB for high-res Canva exports
 const uploadTemplate = multer({ storage: templateStorage, limits: { fileSize: 25 * 1024 * 1024 } });
 
 const assetStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'public/assets'),
+  destination: (req, file, cb) => {
+    const dir = path.join(__dirname, '../public/assets', req.organizationId);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
   filename: (req, file, cb) => cb(null, 'asset_' + Date.now() + path.extname(file.originalname))
 });
 
@@ -123,7 +136,7 @@ router.post('/branding', async (req, res) => {
 router.post('/upload-logo', upload.single('logo'), async (req, res) => {
   if (!req.file) return res.status(400).json({ message: 'No logo file' });
   
-  const logoUrl = `${getApiUrl(req)}/public/logos/${req.file.filename}`;
+  const logoUrl = `${getApiUrl(req)}/public/logos/${req.organizationId}/${req.file.filename}`;
   await Organization.findByIdAndUpdate(req.organizationId, { logo: logoUrl });
   res.json({ message: 'Logo uploaded successfully', logoUrl });
 });
@@ -159,7 +172,7 @@ router.post('/templates', async (req, res) => {
 // Accepts high-res PNG exports (up to 25MB), auto-detects aspect ratio
 router.post('/templates/upload-bg', uploadTemplate.single('background'), async (req, res) => {
   if (!req.file) return res.status(400).json({ message: 'No background file' });
-  const bgUrl = `${getApiUrl(req)}/public/templates/${req.file.filename}`;
+  const bgUrl = `${getApiUrl(req)}/public/templates/${req.organizationId}/${req.file.filename}`;
   try {
     const metadata = await sharp(req.file.path).metadata();
     const aspectRatio = metadata.width / metadata.height;
@@ -186,19 +199,17 @@ router.delete('/templates/:id', async (req, res) => {
 // @route   POST /api/admin/assets/upload
 router.post('/assets/upload', uploadAsset.single('asset'), (req, res) => {
   if (!req.file) return res.status(400).json({ message: 'No asset file' });
-  const assetUrl = `${getApiUrl(req)}/public/assets/${req.file.filename}`;
+  const assetUrl = `${getApiUrl(req)}/public/assets/${req.organizationId}/${req.file.filename}`;
   res.json({ assetUrl });
 });
 
 // @route   GET /api/admin/assets
 router.get('/assets', (req, res) => {
-  const fs = require('fs');
-  const path = require('path');
-  const assetsDir = path.join(__dirname, '../public/assets');
+  const assetsDir = path.join(__dirname, '../public/assets', req.organizationId);
   if (!fs.existsSync(assetsDir)) return res.json([]);
   
   const files = fs.readdirSync(assetsDir);
-  const assets = files.map(f => `${getApiUrl(req)}/public/assets/${f}`);
+  const assets = files.map(f => `${getApiUrl(req)}/public/assets/${req.organizationId}/${f}`);
   res.json(assets);
 });
 
