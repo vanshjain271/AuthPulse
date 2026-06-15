@@ -39,6 +39,10 @@ const certificateSchema = new mongoose.Schema({
     type: Date,
     required: true
   },
+  expiresAt: {
+    type: Date,
+    required: false
+  },
   hash: {
     type: String,
     required: true

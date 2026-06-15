@@ -54,6 +54,12 @@ router.post('/upload', auth, upload.single('file'), async (req, res) => {
       const email = item['Email'] || item.email;
       const startDate = new Date(item['Start Date'] || item.startDate || Date.now());
       const endDate = new Date(item['End Date'] || item.endDate || Date.now());
+      
+      let expiresAt = undefined;
+      const rawExpires = item['Expiration Date'] || item.expiresAt;
+      if (rawExpires) {
+        expiresAt = new Date(rawExpires);
+      }
 
       if (!studentName || !certificateId) continue;
 
@@ -70,6 +76,7 @@ router.post('/upload', auth, upload.single('file'), async (req, res) => {
         internshipDomain,
         startDate,
         endDate,
+        expiresAt,
         hash
       });
 
