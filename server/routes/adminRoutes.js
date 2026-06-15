@@ -34,7 +34,6 @@ const assetStorage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
-const uploadTemplate = multer({ storage: templateStorage });
 const uploadAsset = multer({ storage: assetStorage });
 
 // @route   GET /api/admin/analytics
