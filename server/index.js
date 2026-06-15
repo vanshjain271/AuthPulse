@@ -12,25 +12,22 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
-// Database Connection (Switched to Local JSON for instant usability)
-console.log('Using Local JSON Database');
+// Database Connection
+const mongoose = require('mongoose');
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/authpulse';
+
+mongoose.connect(MONGO_URI)
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
 // Routes
 const certificateRoutes = require('./routes/certificateRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const authRoutes = require('./routes/authRoutes');
+
 app.use('/api/certificates', certificateRoutes);
 app.use('/api/admin', adminRoutes);
-
-// Auth Route (Simple)
-app.post('/api/auth/login', (req, res) => {
-  const { password } = req.body;
-  if (password === process.env.ADMIN_PASSWORD) {
-    const jwt = require('jsonwebtoken');
-    const token = jwt.sign({ role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '1d' });
-    return res.json({ token, message: 'Login successful' });
-  }
-  res.status(401).json({ message: 'Invalid credentials' });
-});
+app.use('/api/auth', authRoutes);
 
 // Error Handling
 app.use((err, req, res, next) => {
