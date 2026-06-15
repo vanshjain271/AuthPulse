@@ -40,11 +40,16 @@ const TemplateDesigner = ({ onSave, onClose }) => {
     fetchData();
   }, []);
 
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('authpulse_token');
+    return { headers: { Authorization: `Bearer ${token}` } };
+  };
+
   const fetchData = async () => {
     try {
       const [assetsRes, templatesRes] = await Promise.all([
-        axios.get('http://127.0.0.1:5000/api/admin/assets'),
-        axios.get('http://127.0.0.1:5000/api/admin/templates')
+        axios.get('http://127.0.0.1:5000/api/admin/assets', getAuthHeaders()),
+        axios.get('http://127.0.0.1:5000/api/admin/templates', getAuthHeaders())
       ]);
       setAssets(assetsRes.data);
       setTemplates(templatesRes.data);
@@ -60,7 +65,12 @@ const TemplateDesigner = ({ onSave, onClose }) => {
     const formData = new FormData();
     formData.append('background', file);
     try {
-      const { data } = await axios.post('http://127.0.0.1:5000/api/admin/templates/upload-bg', formData);
+      const { data } = await axios.post('http://127.0.0.1:5000/api/admin/templates/upload-bg', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${localStorage.getItem('authpulse_token')}`
+        }
+      });
       setTemplate(prev => ({ ...prev, background: data.bgUrl }));
     } catch (err) {
       alert('Upload failed');
@@ -75,22 +85,35 @@ const TemplateDesigner = ({ onSave, onClose }) => {
     const formData = new FormData();
     formData.append('asset', file);
     try {
-      const { data } = await axios.post('http://127.0.0.1:5000/api/admin/assets/upload', formData);
+      const { data } = await axios.post('http://127.0.0.1:5000/api/admin/assets/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${localStorage.getItem('authpulse_token')}`
+        }
+      });
       setAssets(prev => [...prev, data.assetUrl]);
     } catch (err) {
       alert('Asset upload failed');
     }
   };
 
-  const handleMagicImport = () => {
+  const handleMagicImport = async () => {
     if (!magicLink.includes('canva.com')) {
       alert('Please enter a valid Canva design link.');
       return;
     }
-    // Remove the fake simulation and replace with a professional Bridge Assistant
-    const bridgeMsg = "CANVA BRIDGE DETECTED: \n\n1. In Canva: Click 'Share' -> 'Download' -> 'PNG'. \n2. In AuthPulse: Use the 'Upload Design (PNG)' button below. \n\nThis ensures 100% fidelity of your custom colors and shapes. Would you like to open the upload box?";
-    if (window.confirm(bridgeMsg)) {
-       document.getElementById('bg-upload-input').click();
+
+    try {
+      const { data } = await axios.get(`http://127.0.0.1:5000/api/admin/proxy-canva?url=${encodeURIComponent(magicLink)}`, getAuthHeaders());
+      if (data.imageUrl) {
+        setTemplate(prev => ({ ...prev, background: data.imageUrl }));
+        alert('Magic Sync Found: design retrieved successfully!');
+      }
+    } catch (err) {
+      const bridgeMsg = "CANVA BRIDGE ASSISTANT: \n\nDirect scraping failed (Private Link). \nTo import this design with 100% fidelity: \n1. In Canva: Click 'Share' -> 'Download' -> 'PNG'. \n2. In AuthPulse: Use the 'Upload Design (PNG)' button below. \n\nOpen upload box now?";
+      if (window.confirm(bridgeMsg)) {
+        document.getElementById('bg-upload-input').click();
+      }
     }
   };
 
@@ -130,7 +153,7 @@ const TemplateDesigner = ({ onSave, onClose }) => {
 
   const saveTemplate = async () => {
     try {
-      await axios.post('http://127.0.0.1:5000/api/admin/templates', template);
+      await axios.post('http://127.0.0.1:5000/api/admin/templates', template, getAuthHeaders());
       alert('Design Hub: Sync Successful.');
       onSave();
     } catch (err) {
