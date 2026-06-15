@@ -28,8 +28,13 @@ app.use('/public', express.static(path.join(__dirname, 'public')));
 const mongoose = require('mongoose');
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/authpulse';
 
+const startExpirationCron = require('./cron/expirationCron');
+
 mongoose.connect(MONGO_URI)
-  .then(() => console.log('Connected to MongoDB'))
+  .then(() => {
+    console.log('Connected to MongoDB');
+    startExpirationCron();
+  })
   .catch(err => console.error('MongoDB connection error:', err));
 
 // Routes

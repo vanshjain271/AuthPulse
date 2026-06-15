@@ -43,6 +43,42 @@ const sendCertificateEmail = async (studentEmail, studentName, certificateUrl, o
   }
 };
 
+const sendExpirationEmail = async (studentEmail, studentName, domain, org) => {
+  if (!studentEmail) return;
+
+  const orgName = org.name || 'AuthPulse';
+  const orgLogo = org.logo ? `<img src="${org.logo}" alt="${orgName} Logo" style="max-height: 60px; margin-bottom: 20px;" />` : '';
+  const brandColor = org.brandColor || '#ef4444'; // Red for expiration
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: studentEmail,
+    subject: `Action Required: Your ${orgName} Certificate is Expiring Soon`,
+    html: `
+      <div style="font-family: Arial, sans-serif; text-align: center; padding: 40px 20px; max-width: 600px; margin: 0 auto; background-color: #f8fafc; border-radius: 8px;">
+        ${orgLogo}
+        <h2 style="color: #1e293b;">Hello, ${studentName}</h2>
+        <p style="color: #475569; font-size: 16px; line-height: 1.5;">Your verified credential for <strong>${domain}</strong> issued by ${orgName} is expiring in 7 days.</p>
+        <p style="color: #475569; font-size: 14px; line-height: 1.5;">Please contact ${orgName} or follow their renewal procedures to maintain your active certification status.</p>
+        <div style="margin: 30px 0;">
+          <a href="mailto:${org.email}" style="display: inline-block; padding: 12px 24px; background-color: ${brandColor}; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold;">Contact Organization</a>
+        </div>
+        <p style="color: #94a3b8; font-size: 12px; margin-top: 40px;">
+          Secured and verified by <a href="https://authpulse.com" style="color: #94a3b8;">AuthPulse</a>.
+        </p>
+      </div>
+    `
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`Expiration email sent to ${studentEmail}`);
+  } catch (error) {
+    console.error(`Failed to send expiration email to ${studentEmail}:`, error.message);
+  }
+};
+
 module.exports = {
-  sendCertificateEmail
+  sendCertificateEmail,
+  sendExpirationEmail
 };
