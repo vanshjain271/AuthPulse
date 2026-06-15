@@ -175,7 +175,11 @@ const AdminDashboard = ({ onClose }) => {
             <div className="human-card" style={{ maxWidth: '600px', margin: '0 auto' }}>
               <h2 className="serif" style={{ marginBottom: '2rem' }}>Bulk Issuance</h2>
               <p style={{ color: '#64748b', marginBottom: '2rem' }}>Upload your validated student dataset to generate credentials instantly.</p>
-              <input type="file" onChange={(e) => setFile(e.target.files[0])} />
+              <input 
+                type="file" 
+                accept=".csv, .xlsx, .xls"
+                onChange={(e) => setFile(e.target.files[0])} 
+              />
               <button onClick={handleUpload} className="btn-primary" style={{ width: '100%', marginTop: '1.5rem' }}>
                 Process Spreadsheet
               </button>
