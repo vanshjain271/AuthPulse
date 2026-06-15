@@ -144,7 +144,12 @@ const TemplateDesigner = ({ onSave, onClose }) => {
   };
 
   const uploadBackground = async (e) => {
-    const file = e.target.files[0];
+    let file;
+    if (e.target && e.target.files) {
+      file = e.target.files[0];
+    } else if (e.dataTransfer && e.dataTransfer.files) {
+      file = e.dataTransfer.files[0];
+    }
     if (!file) return;
     setIsUploading(true);
     const formData = new FormData();
@@ -160,7 +165,45 @@ const TemplateDesigner = ({ onSave, onClose }) => {
       alert('Upload failed. Ensure the file is under 25MB.');
     } finally {
       setIsUploading(false);
+      setDragActive(false);
     }
+  };
+
+  const [dragActive, setDragActive] = useState(false);
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      uploadBackground(e);
+    }
+  };
+
+  const handleMagicAlign = () => {
+    const magicElements = [
+      { id: `el-ma-1`, type: 'text', content: 'Certificate of Excellence', x: 50, y: 25, fontSize: 40, fontWeight: 700, fontFamily: 'Cinzel', color: '#1e293b', textAlign: 'center', zIndex: 10 },
+      { id: `el-ma-2`, type: 'text', content: 'This is to certify that', x: 50, y: 36, fontSize: 16, fontWeight: 400, fontStyle: 'italic', fontFamily: 'Georgia', color: '#64748b', textAlign: 'center', zIndex: 11 },
+      { id: `el-ma-3`, type: 'variable', key: 'studentName', x: 50, y: 46, fontSize: 55, fontWeight: 700, fontFamily: 'Playfair Display', color: '#b45309', textAlign: 'center', zIndex: 12 },
+      { id: `el-ma-4`, type: 'text', content: 'has successfully completed the program in', x: 50, y: 56, fontSize: 16, fontWeight: 400, fontFamily: 'Inter', color: '#64748b', textAlign: 'center', zIndex: 13 },
+      { id: `el-ma-5`, type: 'variable', key: 'internshipDomain', x: 50, y: 64, fontSize: 24, fontWeight: 700, fontFamily: 'Inter', color: '#1e293b', textAlign: 'center', zIndex: 14 },
+      { id: `el-ma-6`, type: 'variable', key: 'issueDate', x: 25, y: 80, fontSize: 14, fontWeight: 600, fontFamily: 'Inter', color: '#1e293b', textAlign: 'center', zIndex: 15 },
+      { id: `el-ma-7`, type: 'text', content: '_________________\nDate of Issue', x: 25, y: 84, fontSize: 12, fontWeight: 400, fontFamily: 'Inter', color: '#94a3b8', textAlign: 'center', zIndex: 16 },
+      { id: `el-ma-8`, type: 'text', content: '_________________\nAuthorized Signature', x: 75, y: 84, fontSize: 12, fontWeight: 400, fontFamily: 'Inter', color: '#94a3b8', textAlign: 'center', zIndex: 17 },
+      { id: `el-ma-9`, type: 'variable', key: 'qrCode', x: 50, y: 82, width: 80, zIndex: 18 },
+      { id: `el-ma-10`, type: 'variable', key: 'integrityHash', x: 50, y: 94, fontSize: 10, color: '#94a3b8', textAlign: 'center', zIndex: 19 },
+    ];
+    setTemplate(prev => ({ ...prev, elements: magicElements }));
+    alert('Magic Align Complete! Adjust the fields as needed.');
   };
 
   const uploadAsset = async (e) => {
@@ -343,7 +386,10 @@ const TemplateDesigner = ({ onSave, onClose }) => {
               {importStep === 2 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <button onClick={() => setImportStep(1)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', textAlign: 'left', fontSize: '0.75rem', padding: 0 }}>← Back to instructions</button>
-                  <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem', padding: '2.5rem 1.5rem', border: '2px dashed rgba(59,130,246,0.5)', borderRadius: '14px', cursor: 'pointer', background: 'rgba(59,130,246,0.05)', transition: 'all 0.2s' }}>
+                  <label 
+                    onDragEnter={handleDrag} onDragLeave={handleDrag} onDragOver={handleDrag} onDrop={handleDrop}
+                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem', padding: '2.5rem 1.5rem', border: dragActive ? '2px dashed #3b82f6' : '2px dashed rgba(59,130,246,0.5)', borderRadius: '14px', cursor: 'pointer', background: dragActive ? 'rgba(59,130,246,0.15)' : 'rgba(59,130,246,0.05)', transition: 'all 0.2s' }}
+                  >
                     <input type="file" accept="image/png,image/jpeg" onChange={uploadBackground} style={{ display: 'none' }} />
                     {isUploading
                       ? <><div style={{ width: '36px', height: '36px', border: '3px solid #3b82f6', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} /><p style={{ color: '#64748b', fontSize: '0.8rem', margin: 0 }}>Uploading & analyzing...</p></>
@@ -358,7 +404,11 @@ const TemplateDesigner = ({ onSave, onClose }) => {
           {/* FIELDS (DYNAMIC VARIABLES) TAB */}
           {activeTab === 'elements' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <p style={{ color: '#64748b', fontSize: '0.72rem', margin: '0 0 0.5rem' }}>Click to add a field. Drag it on the canvas to position it.</p>
+              <button onClick={handleMagicAlign} style={{ width: '100%', padding: '0.9rem 1rem', background: 'linear-gradient(135deg, #10b981, #059669)', border: 'none', borderRadius: '10px', color: 'white', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '1rem', boxShadow: '0 4px 14px rgba(16, 185, 129, 0.3)' }}>
+                <Sparkles size={16} /> ✨ Auto Magic Align
+              </button>
+
+              <p style={{ color: '#64748b', fontSize: '0.72rem', margin: '0 0 0.5rem' }}>Or add fields manually:</p>
               {VARIABLES.map(v => (
                 <button key={v.key} onClick={() => addElement('variable', { key: v.key })}
                   style={{ width: '100%', padding: '0.9rem 1rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '10px', color: 'white', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', textAlign: 'left', transition: '0.2s' }}>
