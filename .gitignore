@@ -7,3 +7,4 @@ server/public/logos/*
 history.json
 branding.json
 *.xlsx
+server/mongodb_data/
