@@ -73,7 +73,13 @@ function App() {
   const shareToLinkedIn = () => {
     const certUrl = `${window.location.origin}/verify/${certificate.certificateId}`;
     const orgName = certificate.organizationId?.name || 'AuthPulse';
-    const url = `https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&name=${encodeURIComponent(certificate.internshipDomain)}&organizationName=${encodeURIComponent(orgName)}&issueYear=${new Date(certificate.issuedAt).getFullYear()}&issueMonth=${new Date(certificate.issuedAt).getMonth() + 1}&certId=${certificate.certificateId}&certUrl=${encodeURIComponent(certUrl)}`;
+    let url = `https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&name=${encodeURIComponent(certificate.internshipDomain)}&organizationName=${encodeURIComponent(orgName)}&issueYear=${new Date(certificate.issuedAt).getFullYear()}&issueMonth=${new Date(certificate.issuedAt).getMonth() + 1}&certId=${certificate.certificateId}&certUrl=${encodeURIComponent(certUrl)}`;
+    
+    if (certificate.expiresAt) {
+      const expDate = new Date(certificate.expiresAt);
+      url += `&expirationYear=${expDate.getFullYear()}&expirationMonth=${expDate.getMonth() + 1}`;
+    }
+    
     window.open(url, '_blank');
   };
 
