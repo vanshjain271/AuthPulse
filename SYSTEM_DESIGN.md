@@ -7,7 +7,7 @@
 ---
 
 ## 1. Executive Summary
-AuthPulse is a high-performance credentialing platform designed to eliminate credential fraud while providing world-class design flexibility. The system bridges the gap between premium design tools (like Canva) and automated verification systems (SHA-256 integrity checks). It features a "Creator Engine" for sub-pixel design precision and a "TrustSeal" QR-based verification portal.
+AuthPulse is a high-performance credentialing platform designed to eliminate credential fraud while providing world-class design flexibility. The system bridges the gap between premium design tools (like Canva) and automated verification systems (SHA-256 integrity checks). It features a "Creator Engine" for sub-pixel design precision, automated data alignment via local heuristics, dynamic expiration lifecycles, and a "TrustSeal" QR-based verification portal with LinkedIn integration.
 
 ---
 
@@ -15,10 +15,11 @@ AuthPulse is a high-performance credentialing platform designed to eliminate cre
 
 ```mermaid
 graph TD
-    A[Canva / Design Tool] -->|PNG Export| B[Creator Engine]
-    B -->|Template Mapping| C[Admin Command Center]
-    C -->|Batch Issuance| D[JSON Persistence Layer]
-    D -->|Hash Generation| E[Cryptographic Verification Hub]
+    A[Canva / Design Tool] -->|Drag & Drop PNG| B[Creator Engine]
+    B -->|✨ Auto Magic Align| C[Admin Command Center]
+    C -->|Batch CSV/XLSX Issuance| D[MongoDB Persistence Layer]
+    D -->|SHA-256 Hash Generation| E[Cryptographic Verification Hub]
+    D -->|Cron Check| CR[Expiration Alerts System]
     
     subgraph "Frontend (React + Vite)"
         B
@@ -30,6 +31,7 @@ graph TD
         G[Template Engine]
         H[Security Middleware]
         I[Integrity Manager]
+        CR
     end
     
     G --> B
@@ -43,18 +45,25 @@ graph TD
 
 ### 3.1 The Creator Engine (Canva Bridge)
 Unlike standard PDF generators, AuthPulse uses a proprietary **A4-Standard Rendering Engine** that enforces a rigid 1.414:1 aspect ratio. 
+- **Drag-and-Drop Ingestion**: Plugs directly into HTML5 APIs to instantly ingest background designs.
+- **Auto Magic Align**: Smart heuristics automatically parse and distribute standard certificate variables perfectly across the canvas, avoiding tedious manual configurations.
 - **Polymorphic Elements**: Supports Dynamic Variables (Student Data), Static Text (Signatures), and Image Assets (Logos/Seals).
 - **Z-Index Layering**: Implements a CSS-Grid based coordinate system to ensure zero layout-shift across different screen resolutions.
 
-### 3.2 Security & Integrity Layer
+### 3.2 Security & Cryptographic Layer
 Every certificate is immutable once issued. The system employs:
 - **SHA-256 Hashing**: A unique integrity hash is generated for every credential based on Student ID, Name, Domain, and Issue Date.
 - **TrustSeal QR**: An automated QR code that leads directly to the verification page for that specific hash.
 - **Status Management**: Real-time revocation/restoration capabilities for institutional control.
 
-### 3.3 Admin Command Center
+### 3.3 Dynamic Lifecycles & Verification
+- **Expiration Cron Jobs**: A secure `node-cron` daemon continuously monitors credential validity. It auto-triggers personalized, branded warning emails to students exactly 7 days before their credential expires.
+- **LinkedIn One-Click Integration**: The verification portal dynamically constructs a secure URL payload to push verified metadata (including expiration) directly into the student's LinkedIn profile.
+
+### 3.4 Admin Command Center
 - **Template Synchronization**: Bi-directional sync between the designer and the issuance engine.
 - **Analytics Dashboard**: Granular metrics on mass-issued credentials and usage patterns.
+- **Data Segregation**: Strict multi-tenant backend architecture isolates MongoDB records and file systems based on `organizationId`.
 
 ---
 
@@ -63,11 +72,11 @@ Every certificate is immutable once issued. The system employs:
 | Category | Technology | Rationale |
 | :--- | :--- | :--- |
 | **Frontend** | React 18 (Vite) | High-speed HMR and component-based design. |
-| **UI/UX** | Framer Motion | Fluid transitions for the 'Creator Engine' experience. |
-| **Icons** | Lucide-React | Crisp, lightweight vector iconography. |
+| **UI/UX** | Vanilla CSS + Framer Motion | Fluid transitions for the 'Creator Engine' experience. |
 | **Backend** | Node.js (Express) | Asynchronous handling of file uploads and hash generation. |
-| **Security** | Crypto-JS | Industry-standard implementation of SHA-256. |
-| **Persistence** | Structured JSON | Low-latency local storage for mock deployment. |
+| **Database** | MongoDB + Mongoose | Highly scalable NoSQL data persistence supporting complex multi-tenancy rules. |
+| **Security** | Crypto Node Module | Industry-standard implementation of SHA-256. |
+| **Automation**| Node-Cron | Reliable server-side scheduling for lifecycle emails. |
 
 ---
 
@@ -79,20 +88,18 @@ sequenceDiagram
     participant CreatorEngine
     participant Backend
     participant Verifier
+    participant LinkedIn
 
-    Admin->>CreatorEngine: Upload Canva PNG & Map Variables
+    Admin->>CreatorEngine: Drag & Drop PNG
+    CreatorEngine->>CreatorEngine: Run ✨ Auto Magic Align
     CreatorEngine->>Backend: Save Template Config (Coordinates)
-    Admin->>Backend: Issue Batch (Student List)
-    Backend->>Backend: Generate Unique SHA-256 Hashes
+    Admin->>Backend: Issue Batch (Student CSV)
+    Backend->>Backend: Generate SHA-256 Hashes & Parse Expirations
     Backend->>Admin: Confirm Issuance
     Verifier->>Backend: Scan QR Code
     Backend->>Verifier: Return "VALID" + Student Data
+    Verifier->>LinkedIn: Add to Profile (Inject Metadata & URL)
 ```
-
----
-
-## 6. Portability & Scaling
-The system is designed with a **Headless Architecture**, meaning the Frontend Designer can be swapped or the JSON persistence can be migrated to MongoDB/PostgreSQL with minimal refactoring of the service layer.
 
 ---
 
