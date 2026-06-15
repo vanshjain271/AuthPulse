@@ -1,10 +1,11 @@
 import React, { forwardRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 
-const CertificateCard = forwardRef(({ data, branding, template }, ref) => {
+  const CertificateCard = forwardRef(({ data, branding, template }, ref) => {
   if (!data) return null;
 
   const verificationUrl = `${window.location.origin}/verify/${data.certificateId}`;
+  const canvasAspectRatio = template?.aspectRatio || 1.414;
 
   return (
     <div ref={ref} className="cert-container" style={{
@@ -15,7 +16,7 @@ const CertificateCard = forwardRef(({ data, branding, template }, ref) => {
       boxShadow: '0 20px 50px rgba(0,0,0,0.1)',
       position: 'relative',
       overflow: 'hidden',
-      aspectRatio: '1.414 / 1', // International A4 Standard
+      aspectRatio: `${canvasAspectRatio} / 1`,
       border: '1px solid #e2e8f0'
     }}>
       {/* 1. Underlying Design Layer */}
@@ -43,12 +44,14 @@ const CertificateCard = forwardRef(({ data, branding, template }, ref) => {
             {el.type === 'variable' && (
               <span style={{
                 color: el.color || '#1e293b',
-                fontSize: `${(el.fontSize || 24) * 1.2}px`,
+                fontSize: `${el.fontSize || 24}px`,
                 fontWeight: el.fontWeight || 600,
                 fontFamily: el.fontFamily || 'serif',
                 letterSpacing: el.letterSpacing || '0px',
+                fontStyle: el.fontStyle || 'normal',
                 textAlign: 'center',
-                whiteSpace: 'nowrap'
+                whiteSpace: 'nowrap',
+                opacity: el.opacity || 1
               }}>
                 {data[el.key] || `[${el.key}]`}
               </span>
@@ -56,12 +59,14 @@ const CertificateCard = forwardRef(({ data, branding, template }, ref) => {
             {el.type === 'text' && (
               <span style={{
                 color: el.color || '#1e293b',
-                fontSize: `${(el.fontSize || 24) * 1.2}px`,
+                fontSize: `${el.fontSize || 24}px`,
                 fontWeight: el.fontWeight || 600,
                 fontFamily: el.fontFamily || 'serif',
                 letterSpacing: el.letterSpacing || '0px',
+                fontStyle: el.fontStyle || 'normal',
                 textAlign: 'center',
-                whiteSpace: 'nowrap'
+                whiteSpace: 'nowrap',
+                opacity: el.opacity || 1
               }}>
                 {el.content}
               </span>
@@ -71,7 +76,7 @@ const CertificateCard = forwardRef(({ data, branding, template }, ref) => {
                 src={el.url} 
                 alt="Template Asset" 
                 style={{ 
-                  width: `${(el.width || 100) * 1.2}px`, 
+                  width: `${el.width || 100}px`, 
                   height: 'auto',
                   opacity: el.opacity || 1
                 }} 

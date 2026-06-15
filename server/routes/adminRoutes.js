@@ -4,6 +4,7 @@ const AdmZip = require('adm-zip');
 const multer = require('multer');
 const path = require('path');
 const https = require('https');
+const sharp = require('sharp');
 
 const auth = require('../middleware/auth');
 const Template = require('../models/Template');
@@ -21,6 +22,8 @@ const templateStorage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, 'public/templates'),
   filename: (req, file, cb) => cb(null, 'bg_' + Date.now() + path.extname(file.originalname))
 });
+// Allow up to 25MB for high-res Canva exports
+const uploadTemplate = multer({ storage: templateStorage, limits: { fileSize: 25 * 1024 * 1024 } });
 
 const assetStorage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, 'public/assets'),
@@ -141,10 +144,18 @@ router.post('/templates', async (req, res) => {
 });
 
 // @route   POST /api/admin/templates/upload-bg
-router.post('/templates/upload-bg', uploadTemplate.single('background'), (req, res) => {
+// Accepts high-res PNG exports (up to 25MB), auto-detects aspect ratio
+router.post('/templates/upload-bg', uploadTemplate.single('background'), async (req, res) => {
   if (!req.file) return res.status(400).json({ message: 'No background file' });
   const bgUrl = `http://127.0.0.1:5000/public/templates/${req.file.filename}`;
-  res.json({ bgUrl });
+  try {
+    const metadata = await sharp(req.file.path).metadata();
+    const aspectRatio = metadata.width / metadata.height;
+    res.json({ bgUrl, aspectRatio });
+  } catch (e) {
+    // Fallback to standard A4 landscape if sharp fails
+    res.json({ bgUrl, aspectRatio: 1.414 });
+  }
 });
 
 // @route   DELETE /api/admin/templates/:id
@@ -177,30 +188,6 @@ router.get('/assets', (req, res) => {
   const files = fs.readdirSync(assetsDir);
   const assets = files.map(f => `http://127.0.0.1:5000/public/assets/${f}`);
   res.json(assets);
-});
-
-// @route   GET /api/admin/proxy-canva?url=...
-router.get('/proxy-canva', (req, res) => {
-  const targetUrl = req.query.url;
-  if (!targetUrl || !targetUrl.includes('canva.com')) {
-    return res.status(400).json({ message: 'Invalid Canva URL' });
-  }
-
-  https.get(targetUrl, (response) => {
-    let data = '';
-    response.on('data', (chunk) => { data += chunk; });
-    response.on('end', () => {
-      // Find og:image in meta tags
-      const match = data.match(/<meta property="og:image" content="(.*?)"/);
-      if (match && match[1]) {
-        res.json({ imageUrl: match[1] });
-      } else {
-        res.status(404).json({ message: 'Design thumbnail not found. Ensure the link is Public.' });
-      }
-    });
-  }).on('error', (err) => {
-    res.status(500).json({ message: 'Proxy fetch failed' });
-  });
 });
 
 module.exports = router;
