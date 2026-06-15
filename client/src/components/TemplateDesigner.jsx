@@ -7,6 +7,8 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
+import { QRCodeSVG } from 'qrcode.react';
+
 import { STARTER_TEMPLATES } from '../data/starterTemplates';
 
 const FONTS = [
@@ -19,6 +21,8 @@ const SAMPLE_DATA = {
   internshipDomain: 'Machine Learning & AI',
   certificateId: 'AUTH-2024-XXXX',
   issueDate: '15th June 2024',
+  qrCode: 'https://authpulse.com/verify/demo',
+  integrityHash: '0x9a7b...8f4c'
 };
 
 const VARIABLES = [
@@ -26,6 +30,8 @@ const VARIABLES = [
   { label: 'Program / Domain', key: 'internshipDomain', description: 'Course or internship title' },
   { label: 'Certificate ID', key: 'certificateId', description: 'Unique verification ID' },
   { label: 'Issue Date', key: 'issueDate', description: 'Date of issuance' },
+  { label: 'Security QR Code', key: 'qrCode', description: 'Scannable verification QR' },
+  { label: 'Integrity Hash', key: 'integrityHash', description: 'Blockchain/Crypto hash' },
 ];
 
 const TemplateDesigner = ({ onSave, onClose }) => {
@@ -160,9 +166,28 @@ const TemplateDesigner = ({ onSave, onClose }) => {
   const canvasAspectRatio = template.aspectRatio || 1.414;
 
   const renderElementContent = (el) => {
-    const displayValue = isPreview
-      ? (el.type === 'variable' ? SAMPLE_DATA[el.key] || `[${el.key}]` : el.content)
-      : (el.type === 'variable' ? `{{${el.key}}}` : el.content);
+      const displayValue = isPreview
+        ? (el.type === 'variable' ? SAMPLE_DATA[el.key] || `[${el.key}]` : el.content)
+        : (el.type === 'variable' ? `{{${el.key}}}` : el.content);
+
+      if (el.type === 'variable' && el.key === 'qrCode') {
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <QRCodeSVG value={SAMPLE_DATA.qrCode} size={el.width || 80} />
+            <span style={{ fontSize: '0.55rem', color: el.color || '#1e293b', marginTop: '4px', fontWeight: 600 }}>SCAN TO VERIFY</span>
+          </div>
+        );
+      }
+
+      if (el.type === 'variable' && el.key === 'integrityHash') {
+        return (
+          <div style={{ textAlign: el.textAlign || 'center' }}>
+            <p style={{ fontSize: `${el.fontSize * 0.8}px`, color: el.color, margin: 0, fontFamily: 'monospace', letterSpacing: '1px' }}>
+              HASH: {displayValue}
+            </p>
+          </div>
+        );
+      }
 
     if (editingId === el.id && el.type === 'text') {
       return (
@@ -542,15 +567,14 @@ const TemplateDesigner = ({ onSave, onClose }) => {
                   </div>
                 </>
               )}
-
-              {selectedEl.type === 'image' && (
+              {(selectedEl.type === 'image' || selectedEl.key === 'qrCode') && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   <label style={{ color: '#64748b', fontSize: '0.7rem', fontWeight: 600, letterSpacing: '1px' }}>SIZE (WIDTH)</label>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <input type="range" min="20" max="600" value={selectedEl.width || 120}
+                    <input type="range" min="20" max="600" value={selectedEl.width || 80}
                       onChange={e => updateElement(selectedId, { width: Number(e.target.value) })}
                       style={{ flex: 1 }} />
-                    <span style={{ color: 'white', fontSize: '0.8rem', width: '40px', textAlign: 'right' }}>{selectedEl.width || 120}px</span>
+                    <span style={{ color: 'white', fontSize: '0.8rem', width: '40px', textAlign: 'right' }}>{selectedEl.width || 80}px</span>
                   </div>
                 </div>
               )}

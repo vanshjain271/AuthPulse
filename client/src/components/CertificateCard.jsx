@@ -41,7 +41,7 @@ import { QRCodeSVG } from 'qrcode.react';
             zIndex: el.zIndex || 1,
             pointerEvents: 'none'
           }}>
-            {el.type === 'variable' && (
+            {el.type === 'variable' && el.key !== 'qrCode' && el.key !== 'integrityHash' && (
               <span style={{
                 color: el.color || '#1e293b',
                 fontSize: `${el.fontSize || 24}px`,
@@ -55,6 +55,19 @@ import { QRCodeSVG } from 'qrcode.react';
               }}>
                 {data[el.key] || `[${el.key}]`}
               </span>
+            )}
+            {el.type === 'variable' && el.key === 'qrCode' && (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <QRCodeSVG value={verificationUrl} size={el.width || 80} />
+                <span style={{ fontSize: `${(el.width || 80) * 0.1}px`, color: el.color || '#1e293b', marginTop: '4px', fontWeight: 600 }}>SCAN TO VERIFY</span>
+              </div>
+            )}
+            {el.type === 'variable' && el.key === 'integrityHash' && (
+              <div style={{ textAlign: el.textAlign || 'center' }}>
+                <p style={{ fontSize: `${(el.fontSize || 24) * 0.8}px`, color: el.color, margin: 0, fontFamily: 'monospace', letterSpacing: '1px' }}>
+                  HASH: {data.hash?.slice(0, 32)}...
+                </p>
+              </div>
             )}
             {el.type === 'text' && (
               <span style={{
@@ -94,21 +107,24 @@ import { QRCodeSVG } from 'qrcode.react';
           </div>
         </div>
 
-        {/* TrustSeal QR (Bottom Right) */}
-        <div style={{ position: 'absolute', bottom: '6%', right: '6%', textAlign: 'center' }}>
-          <QRCodeSVG value={verificationUrl} size={90} />
-          <p style={{ fontSize: '0.6rem', color: '#94a3b8', marginTop: '0.5rem', fontWeight: 600 }}>SCAN TO VERIFY</p>
-        </div>
+        {/* Fallback Security Layers (Only render if user didn't explicitly place them in TemplateDesigner) */}
+        {!template?.elements?.find(e => e.key === 'qrCode') && (
+          <div style={{ position: 'absolute', bottom: '6%', right: '6%', textAlign: 'center' }}>
+            <QRCodeSVG value={verificationUrl} size={90} />
+            <p style={{ fontSize: '0.6rem', color: '#94a3b8', marginTop: '0.5rem', fontWeight: 600 }}>SCAN TO VERIFY</p>
+          </div>
+        )}
 
-        {/* Integrity Hash (Bottom Left) */}
-        <div style={{ position: 'absolute', bottom: '6%', left: '6%' }}>
-          <p style={{ fontSize: '0.65rem', color: '#94a3b8', margin: 0, fontFamily: 'monospace', letterSpacing: '1px' }}>
-            INTEGRITY HASH: {data.hash?.slice(0, 32)}...
-          </p>
-          <p style={{ fontSize: '0.6rem', color: '#94a3b8', marginTop: '0.2rem' }}>
-            VERIFICATION ID: {data.certificateId}
-          </p>
-        </div>
+        {!template?.elements?.find(e => e.key === 'integrityHash') && (
+          <div style={{ position: 'absolute', bottom: '6%', left: '6%' }}>
+            <p style={{ fontSize: '0.65rem', color: '#94a3b8', margin: 0, fontFamily: 'monospace', letterSpacing: '1px' }}>
+              INTEGRITY HASH: {data.hash?.slice(0, 32)}...
+            </p>
+            <p style={{ fontSize: '0.6rem', color: '#94a3b8', marginTop: '0.2rem' }}>
+              VERIFICATION ID: {data.certificateId}
+            </p>
+          </div>
+        )}
 
         {/* Smart Layer Fallback: Automatically injects professional placement if no elements exist */}
         {(!template?.elements || template.elements.length === 0) && (
