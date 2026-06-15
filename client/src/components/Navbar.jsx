@@ -1,7 +1,7 @@
 import React from 'react';
-import { Award, ShieldCheck, User } from 'lucide-react';
+import { Award, ShieldCheck, LogOut } from 'lucide-react';
 
-const Navbar = ({ onAdminClick }) => {
+const Navbar = ({ onAdminClick, isAuthenticated, onLogout }) => {
   return (
     <nav className="no-print" style={{
       padding: '1.5rem 0',
@@ -25,6 +25,7 @@ const Navbar = ({ onAdminClick }) => {
         
         <div style={{ display: 'flex', gap: '2.5rem', alignItems: 'center' }}>
           <a href="/" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontWeight: 500, fontSize: '0.9rem' }}>Home</a>
+          
           <button 
             onClick={onAdminClick}
             style={{ 
@@ -34,8 +35,21 @@ const Navbar = ({ onAdminClick }) => {
             }}
           >
             <ShieldCheck size={18} />
-            Admin Portal
+            {isAuthenticated ? 'Dashboard' : 'Admin Login'}
           </button>
+
+          {isAuthenticated && (
+            <button 
+              onClick={onLogout}
+              style={{ 
+                display: 'flex', alignItems: 'center', gap: '0.5rem',
+                background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500, color: '#ef4444'
+              }}
+            >
+              <LogOut size={18} />
+              Logout
+            </button>
+          )}
         </div>
       </div>
     </nav>

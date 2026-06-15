@@ -3,8 +3,9 @@ import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import CertificateCard from './components/CertificateCard';
 import AdminDashboard from './components/AdminDashboard';
+import AuthModal from './components/AuthModal';
 import { useReactToPrint } from 'react-to-print';
-import { Download, AlertCircle, Share2, ShieldCheck, Mail } from 'lucide-react';
+import { Download, AlertCircle, Share2, ShieldCheck } from 'lucide-react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -13,23 +14,33 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [branding, setBranding] = useState(null);
   const [templates, setTemplates] = useState([]);
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('authpulse_token'));
   const certificateRef = useRef();
 
+  // For MVP, public pages shouldn't really fetch protected branding/templates directly without an org ID.
+  // But we'll leave it as a no-op if they fail to prevent crashing the public search page.
   useEffect(() => {
-    const fetchEcosystemData = async () => {
-      try {
-        const { data: b } = await axios.get('http://127.0.0.1:5000/api/admin/branding');
-        const { data: t } = await axios.get('http://127.0.0.1:5000/api/admin/templates');
-        setBranding(b);
-        setTemplates(t);
-      } catch (err) {
-        console.error('Core ecosystem sync failed');
-      }
-    };
-    fetchEcosystemData();
+    // Check auth status on mount
+    setIsAuthenticated(!!localStorage.getItem('authpulse_token'));
   }, []);
+
+  const handleAdminClick = () => {
+    if (isAuthenticated) {
+      setIsAdminOpen(true);
+    } else {
+      setIsAuthOpen(true);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('authpulse_token');
+    localStorage.removeItem('authpulse_org_id');
+    setIsAuthenticated(false);
+    setIsAdminOpen(false);
+  };
 
   const handlePrint = useReactToPrint({
     content: () => certificateRef.current,
@@ -57,7 +68,7 @@ function App() {
 
   return (
     <div className="App">
-      <Navbar onAdminClick={() => setIsAdminOpen(true)} />
+      <Navbar onAdminClick={handleAdminClick} isAuthenticated={isAuthenticated} onLogout={handleLogout} />
       
       <main className="premium-container">
         <Hero onSearch={handleSearch} loading={loading} />
@@ -75,7 +86,7 @@ function App() {
 
             {certificate && (
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                {certificate.revoked && (
+                {certificate.status === 'REVOKED' && (
                   <div style={{ background: '#fef2f2', color: '#dc2626', padding: '1rem', borderRadius: '8px', marginBottom: '2rem', textAlign: 'center', border: '1px solid #fee2e2' }}>
                     <ShieldCheck inline="true" /> This credential has been officially revoked by the issuing authority.
                   </div>
@@ -116,6 +127,17 @@ function App() {
         </div>
       </footer>
 
+      {isAuthOpen && (
+        <AuthModal 
+          onClose={() => setIsAuthOpen(false)} 
+          onLoginSuccess={() => {
+            setIsAuthOpen(false);
+            setIsAuthenticated(true);
+            setIsAdminOpen(true);
+          }} 
+        />
+      )}
+      
       {isAdminOpen && <AdminDashboard onClose={() => setIsAdminOpen(false)} />}
     </div>
   );
